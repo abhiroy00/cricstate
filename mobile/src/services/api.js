@@ -1,0 +1,60 @@
+import axios from "axios";
+
+import { API_BASE_URL } from "../utils/config";
+import { clearTokens, getAccessToken, getRefreshToken, setTokens } from "../utils/storage";
+
+export const api = axios.create({
+  baseURL: API_BASE_URL,
+});
+
+api.interceptors.request.use(async (config) => {
+  const token = await getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+let refreshPromise = null;
+
+async function refreshAccessToken() {
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) {
+    throw new Error("No refresh token available");
+  }
+  const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+    refresh_token: refreshToken,
+  });
+  const { access_token, refresh_token } = response.data.data;
+  await setTokens({ accessToken: access_token, refreshToken: refresh_token });
+  return access_token;
+}
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    const isAuthEndpoint = originalRequest?.url?.includes("/auth/");
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      originalRequest._retry = true;
+      try {
+        refreshPromise = refreshPromise || refreshAccessToken();
+        const newAccessToken = await refreshPromise;
+        refreshPromise = null;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        refreshPromise = null;
+        await clearTokens();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export function extractErrorMessage(error) {
+  return error?.response?.data?.message || error?.message || "Something went wrong";
+}
