@@ -5,7 +5,7 @@ import AppRoutes from "./routes/AppRoutes";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.PROD ? "/admin" : "/"}>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

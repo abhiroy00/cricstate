@@ -34,6 +34,16 @@ mobile/.expo/
 # --- Docker ---
 *.pid
 
+# --- Terraform ---
+infra/terraform/.terraform/
+infra/terraform/.terraform.lock.hcl
+infra/terraform/terraform.tfstate
+infra/terraform/terraform.tfstate.backup
+infra/terraform/*.tfvars
+!infra/terraform/terraform.tfvars.example
+infra/terraform/*.tfplan
+infra/terraform/cricstate_deploy*
+
 # --- IDE / OS ---
 .vscode/
 .idea/
