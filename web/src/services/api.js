@@ -2,7 +2,12 @@ import axios from "axios";
 
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from "../utils/storage";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+// Falls back to a relative path (resolves against whatever origin served the
+// page) rather than a hardcoded localhost URL - the production build doesn't
+// set VITE_API_URL, and nginx proxies /api/* on the same origin as the app,
+// so a relative path is what actually works there. Local dev sets
+// VITE_API_URL explicitly via web/.env and takes precedence over this.
+const API_URL = import.meta.env.VITE_API_URL || "/api/v1";
 
 export const api = axios.create({
   baseURL: API_URL,
