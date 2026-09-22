@@ -1,5 +1,4 @@
 export const DRAWER_ITEMS = [
-  "Profile",
   "PRO",
   "Add Tournament",
   "Start A Match",

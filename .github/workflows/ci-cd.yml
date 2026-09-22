@@ -106,5 +106,13 @@ jobs:
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          sleep 5
-          curl -sf "http://$EC2_HOST/health"
+          for i in $(seq 1 12); do
+            if curl -sf "http://$EC2_HOST/health"; then
+              echo "Healthy"
+              exit 0
+            fi
+            echo "Not ready yet, retrying in 5s ($i/12)..."
+            sleep 5
+          done
+          echo "Service did not become healthy in time"
+          exit 1

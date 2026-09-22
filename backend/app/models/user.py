@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
+    from app.models.follow import Follow
+    from app.models.profile import Profile
     from app.models.refresh_token import RefreshToken
     from app.models.role import UserRole
 
@@ -34,6 +36,17 @@ class User(UUIDPkMixin, TimestampMixin, Base):
     )
     refresh_tokens: Mapped[List["RefreshToken"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
+    )
+    profile: Mapped[Optional["Profile"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", uselist=False
+    )
+    # Follow rows where I am the follower - i.e. the people I follow.
+    following_links: Mapped[List["Follow"]] = relationship(
+        foreign_keys="Follow.follower_id", back_populates="follower", cascade="all, delete-orphan"
+    )
+    # Follow rows where I am being followed - i.e. my followers.
+    follower_links: Mapped[List["Follow"]] = relationship(
+        foreign_keys="Follow.following_id", back_populates="following", cascade="all, delete-orphan"
     )
 
     @property

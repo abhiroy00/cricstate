@@ -20,3 +20,13 @@ class RoleRepository:
         self.db.add(user_role)
         await self.db.flush()
         return user_role
+
+    async def get_user_role(self, user_id: uuid.UUID, role_id: uuid.UUID) -> Optional[UserRole]:
+        result = await self.db.execute(
+            select(UserRole).where(UserRole.user_id == user_id, UserRole.role_id == role_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def revoke_role_from_user(self, user_role: UserRole) -> None:
+        await self.db.delete(user_role)
+        await self.db.flush()
