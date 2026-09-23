@@ -39,7 +39,7 @@ cricstate/
 ├── backend/    FastAPI (Python) — see backend/app for the module layout
 ├── web/        React + Vite (JS) — end-user web app
 ├── admin/      React + Vite (JS) — separate admin panel app
-├── mobile/     React Native CLI (JS) — end-user mobile app
+├── mobile/     React Native + Expo (JS) — end-user mobile app, run via Expo Go
 ├── streaming/  Placeholder for the Phase 6 live-video pipeline
 ├── nginx/      Reverse proxy config
 └── docker-compose.yml
@@ -140,34 +140,33 @@ first admin login.
 
 ## 8. Running the mobile app
 
-The JS source tree (`mobile/src/`, `App.js`, `index.js`, navigation, auth, FCM
-service) is complete, but the native `android/`/`ios/` project folders are **not**
-checked in — they must be generated locally, since that step needs a real
-Android/Xcode toolchain this repo can't provide:
+The app runs through **Expo Go** for local preview — no Android Studio/Xcode
+toolchain needed to see it working on a real device:
 
 ```bash
 cd mobile
 npm install
-
-# Generate native folders once (creates android/ and ios/ next to this src tree)
-npx @react-native-community/cli init CricStateMobile --skip-install --directory tmp-init
-# then copy tmp-init/android and tmp-init/ios into mobile/, and delete tmp-init/
-
-npm run android     # or: npm run ios (macOS only)
+npx expo start
 ```
 
-For push notifications (`@react-native-firebase/messaging`), drop these into the
-generated native projects before building:
+This prints a `exp://<your-lan-ip>:8081` URL (and a QR code in an interactive
+terminal). Open it in the Expo Go app (Play Store/App Store) — its installed
+version must match this project's SDK (`expo` version in `package.json`; keep
+both on the same major version, e.g. SDK 57). If your phone can't reach your
+dev machine over LAN, run `npx expo start --tunnel` instead.
 
-- `android/app/google-services.json`
-- `ios/GoogleService-Info.plist`
+By default `src/utils/config.js` points at the deployed production backend
+(`http://100.61.50.136/api/v1`) rather than a local URL, since a phone in Expo
+Go isn't guaranteed to share a network with whatever machine is running the
+backend locally — point it at your own LAN IP + port 8000 for local-backend
+testing instead.
 
-Until those are added, `src/services/notificationService.js` degrades to a no-op
-instead of crashing.
-
-By default `src/utils/config.js` points at `http://10.0.2.2:8000/api/v1` (the
-Android emulator's alias for the host machine). Change it for a physical device
-or iOS simulator.
+**Push notifications** (Firebase Cloud Messaging) aren't wired up yet — they
+need a real native build (`npx expo prebuild` to generate `android/`/`ios/`,
+then `@react-native-firebase/messaging` or `expo-notifications` on top, plus
+`google-services.json`/`GoogleService-Info.plist`), which is out of scope for
+the Expo Go preview workflow. This is a placeholder for a later phase, not
+partially-built code — there's currently no notification service file at all.
 
 ## 9. Running everything with Docker Compose
 
