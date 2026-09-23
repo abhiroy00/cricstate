@@ -23,13 +23,20 @@ class TournamentRepository:
         return result.scalar_one_or_none()
 
     async def list(
-        self, status: Optional[str], limit: int, offset: int
+        self,
+        status: Optional[str],
+        limit: int,
+        offset: int,
+        organizer_id: Optional[uuid.UUID] = None,
     ) -> Tuple[List[Tournament], int]:
         query = select(Tournament)
         count_query = select(func.count()).select_from(Tournament)
         if status:
             query = query.where(Tournament.status == status)
             count_query = count_query.where(Tournament.status == status)
+        if organizer_id:
+            query = query.where(Tournament.organizer_id == organizer_id)
+            count_query = count_query.where(Tournament.organizer_id == organizer_id)
 
         total = (await self.db.execute(count_query)).scalar_one()
         result = await self.db.execute(

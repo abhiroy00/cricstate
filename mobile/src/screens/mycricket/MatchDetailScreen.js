@@ -117,6 +117,11 @@ export default function MatchDetailScreen({ route }) {
         {match.match_type} · {match.overs_limit} overs · {match.status}
       </Text>
       {match.result_summary && <Text style={styles.resultBanner}>{match.result_summary}</Text>}
+      {match.status === "SCHEDULED" && (
+        <Text style={styles.hint}>
+          Toss, starting the match, and scoring are done from the web app for now.
+        </Text>
+      )}
 
       {liveState && <LiveScoreView state={liveState} />}
       {scorecard && <ScorecardView scorecard={scorecard} />}
@@ -150,6 +155,14 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     fontWeight: "600",
+    marginBottom: 12,
+  },
+  hint: {
+    backgroundColor: colors.background,
+    color: colors.muted,
+    padding: 10,
+    borderRadius: 8,
+    fontSize: 12,
     marginBottom: 12,
   },
   liveBox: {

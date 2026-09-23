@@ -426,6 +426,11 @@ async def test_second_innings_target_and_match_end(client: AsyncClient):
     stats = stats_resp.json()["data"]
     assert stats["matches_played"] == 1
     assert stats["runs_scored"] == 7
+    assert stats["not_outs"] == 1
+    assert stats["highest_score"] == 7
+    assert stats["hundreds"] == 0
+    assert stats["fifties"] == 0
+    assert stats["catches"] == 0
 
 
 async def test_non_scorer_cannot_record_delivery(client: AsyncClient):
@@ -435,3 +440,55 @@ async def test_non_scorer_cannot_record_delivery(client: AsyncClient):
 
     resp = await _deliver(client, stranger, match["id"], runs_off_bat=1)
     assert resp.status_code == 403
+
+
+async def test_fielding_stats_credited_on_match_end(client: AsyncClient):
+    setup = await _setup_ready_match(client, overs_limit=1)
+    scorer, match = setup["scorer"], setup["match"]
+    a_players = setup["team_a"]["players"]
+    b_players = setup["team_b"]["players"]
+    fielder = b_players[2]["id"]
+
+    resp = await _deliver(
+        client,
+        scorer,
+        match["id"],
+        runs_off_bat=0,
+        is_wicket=True,
+        wicket_type="CAUGHT",
+        out_player_id=a_players[0]["id"],
+        fielder_id=fielder,
+        next_batsman_id=a_players[2]["id"],
+    )
+    assert resp.status_code == 200, resp.text
+
+    for _ in range(5):
+        resp = await _deliver(client, scorer, match["id"], runs_off_bat=0)
+        assert resp.status_code == 200, resp.text
+
+    state = await _live(client, match["id"])
+    assert state["innings"]["status"] == "COMPLETED"
+
+    next_innings_resp = await client.post(
+        f"/api/v1/scoring/{match['id']}/next-innings",
+        json={
+            "striker_id": b_players[0]["id"],
+            "non_striker_id": b_players[1]["id"],
+            "bowler_id": a_players[0]["id"],
+        },
+        headers=_auth_header(scorer),
+    )
+    assert next_innings_resp.status_code == 200, next_innings_resp.text
+
+    resp = await _deliver(client, scorer, match["id"], runs_off_bat=6)
+    assert resp.status_code == 200, resp.text
+
+    end_resp = await client.post(
+        f"/api/v1/scoring/{match['id']}/end", headers=_auth_header(scorer)
+    )
+    assert end_resp.status_code == 200, end_resp.text
+
+    fielder_stats = (await client.get(f"/api/v1/players/{fielder}/stats")).json()["data"]
+    assert fielder_stats["catches"] == 1
+    assert fielder_stats["stumpings"] == 0
+    assert fielder_stats["run_outs"] == 0

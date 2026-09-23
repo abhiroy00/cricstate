@@ -70,8 +70,15 @@ class TournamentService:
         await self.db.refresh(tournament)
         return tournament
 
-    async def list_tournaments(self, status: Optional[str], params: PageParams) -> dict:
-        tournaments, total = await self.tournaments.list(status, params.limit, params.offset)
+    async def list_tournaments(
+        self,
+        status: Optional[str],
+        params: PageParams,
+        organizer_id: Optional[uuid.UUID] = None,
+    ) -> dict:
+        tournaments, total = await self.tournaments.list(
+            status, params.limit, params.offset, organizer_id
+        )
         items = [
             TournamentOut(
                 id=t.id,

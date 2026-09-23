@@ -8,7 +8,7 @@ import { createMatch } from "../../services/matchService";
 import { listTeams } from "../../services/teamService";
 import { colors } from "../../utils/theme";
 
-export default function StartMatchScreen() {
+export default function StartMatchScreen({ navigation }) {
   const [teams, setTeams] = useState([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [teamAId, setTeamAId] = useState("");
@@ -17,7 +17,6 @@ export default function StartMatchScreen() {
   const [venue, setVenue] = useState("");
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
-  const [created, setCreated] = useState(null);
 
   useEffect(() => {
     listTeams({ limit: 100 })
@@ -45,7 +44,7 @@ export default function StartMatchScreen() {
         overs_limit: Number(oversLimit) || 20,
         venue: venue || null,
       });
-      setCreated(match);
+      navigation.replace("MatchDetail", { matchId: match.id });
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -57,20 +56,6 @@ export default function StartMatchScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={colors.primary} />
-      </View>
-    );
-  }
-
-  if (created) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.successTitle}>Match created!</Text>
-        <Text style={styles.successBody}>
-          {created.team_a.name} vs {created.team_b.name}
-        </Text>
-        <Text style={styles.successHint}>
-          Open the My Cricket tab to record the toss and start scoring.
-        </Text>
       </View>
     );
   }
@@ -148,21 +133,5 @@ const styles = StyleSheet.create({
   error: {
     color: colors.danger,
     marginBottom: 12,
-  },
-  successTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.primary,
-    marginBottom: 8,
-  },
-  successBody: {
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 8,
-  },
-  successHint: {
-    fontSize: 13,
-    color: colors.muted,
-    textAlign: "center",
   },
 });

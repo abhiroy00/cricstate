@@ -61,8 +61,13 @@ class TeamService:
         await self.db.refresh(team)
         return team
 
-    async def list_teams(self, search: Optional[str], params: PageParams) -> dict:
-        teams, total = await self.teams.list(search, params.limit, params.offset)
+    async def list_teams(
+        self,
+        search: Optional[str],
+        params: PageParams,
+        created_by: Optional[uuid.UUID] = None,
+    ) -> dict:
+        teams, total = await self.teams.list(search, params.limit, params.offset, created_by)
         items = [
             TeamOut(
                 id=t.id,
@@ -76,6 +81,21 @@ class TeamService:
             for t in teams
         ]
         return paginated_response(items, total, params)
+
+    async def list_opponents(self, current_user: User) -> List[dict]:
+        teams = await self.teams.list_opponents(current_user.id)
+        return [
+            TeamOut(
+                id=t.id,
+                name=t.name,
+                logo_url=t.logo_url,
+                home_ground=t.home_ground,
+                created_by=t.created_by,
+                player_count=len(t.player_links),
+                created_at=t.created_at,
+            ).model_dump()
+            for t in teams
+        ]
 
     async def get_roster(self, team_id: uuid.UUID) -> List[TeamPlayer]:
         team = await self.get_team_or_404(team_id)

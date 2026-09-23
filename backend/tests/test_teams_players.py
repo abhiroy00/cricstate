@@ -167,3 +167,63 @@ async def test_non_owner_cannot_add_player_to_team(client: AsyncClient):
         headers=_auth_header(intruder),
     )
     assert response.status_code == 403
+
+
+async def test_get_my_player(client: AsyncClient):
+    owner = await _register(client, "owner10", "owner10@example.com")
+
+    missing = await client.get("/api/v1/players/me", headers=_auth_header(owner))
+    assert missing.status_code == 404
+
+    create = await client.post(
+        "/api/v1/players",
+        json={"full_name": "Self Linked", "role": "BATSMAN", "user_id": owner["user"]["id"]},
+        headers=_auth_header(owner),
+    )
+    assert create.status_code == 200
+
+    response = await client.get("/api/v1/players/me", headers=_auth_header(owner))
+    assert response.status_code == 200
+    assert response.json()["data"]["full_name"] == "Self Linked"
+
+
+async def test_list_teams_created_by_filter(client: AsyncClient):
+    owner = await _register(client, "owner11", "owner11@example.com")
+    other = await _register(client, "owner12", "owner12@example.com")
+    await _create_team(client, owner, "Owner11 XI")
+    await _create_team(client, other, "Owner12 XI")
+
+    response = await client.get(
+        "/api/v1/teams", params={"created_by": owner["user"]["id"]}
+    )
+    body = response.json()["data"]["items"]
+
+    assert response.status_code == 200
+    assert len(body) == 1
+    assert body[0]["name"] == "Owner11 XI"
+
+
+async def test_list_opponent_teams(client: AsyncClient):
+    owner = await _register(client, "owner13", "owner13@example.com")
+    rival = await _register(client, "owner14", "owner14@example.com")
+    my_team = await _create_team(client, owner, "Owner13 XI")
+    rival_team = await _create_team(client, rival, "Owner14 XI")
+
+    match = await client.post(
+        "/api/v1/matches",
+        json={
+            "team_a_id": my_team["id"],
+            "team_b_id": rival_team["id"],
+            "match_type": "T20",
+            "overs_limit": 20,
+        },
+        headers=_auth_header(owner),
+    )
+    assert match.status_code == 200
+
+    response = await client.get("/api/v1/teams/opponents", headers=_auth_header(owner))
+    body = response.json()["data"]
+
+    assert response.status_code == 200
+    assert len(body) == 1
+    assert body[0]["name"] == "Owner14 XI"

@@ -153,3 +153,27 @@ async def test_points_table_empty_before_matches(client: AsyncClient):
     response = await client.get(f"/api/v1/tournaments/{tournament['id']}/points-table")
     assert response.status_code == 200
     assert response.json()["data"] == []
+
+
+async def test_list_tournaments_organizer_filter(client: AsyncClient):
+    organizer = await _register(client, "org7", "org7@example.com")
+    other = await _register(client, "org8", "org8@example.com")
+    await client.post(
+        "/api/v1/tournaments",
+        json={"name": "Org7 Cup", "format": "LEAGUE"},
+        headers=_auth_header(organizer),
+    )
+    await client.post(
+        "/api/v1/tournaments",
+        json={"name": "Org8 Cup", "format": "LEAGUE"},
+        headers=_auth_header(other),
+    )
+
+    response = await client.get(
+        "/api/v1/tournaments", params={"organizer_id": organizer["user"]["id"]}
+    )
+    body = response.json()["data"]["items"]
+
+    assert response.status_code == 200
+    assert len(body) == 1
+    assert body[0]["name"] == "Org7 Cup"

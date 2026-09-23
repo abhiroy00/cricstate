@@ -44,6 +44,10 @@ class PlayerCareerStatsOut(BaseModel):
     balls_faced: int
     fours: int
     sixes: int
+    not_outs: int
+    highest_score: int
+    hundreds: int
+    fifties: int
     batting_average: Optional[float] = None
     strike_rate: Optional[float] = None
     wickets_taken: int
@@ -51,3 +55,6 @@ class PlayerCareerStatsOut(BaseModel):
     runs_conceded: int
     bowling_average: Optional[float] = None
     economy_rate: Optional[float] = None
+    catches: int
+    stumpings: int
+    run_outs: int

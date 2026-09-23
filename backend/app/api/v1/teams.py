@@ -57,13 +57,24 @@ async def create_team(
 @router.get("")
 async def list_teams(
     search: str | None = Query(default=None),
+    created_by: uuid.UUID | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
     service = TeamService(db)
-    page = await service.list_teams(search, PageParams(limit=limit, offset=offset))
+    page = await service.list_teams(search, PageParams(limit=limit, offset=offset), created_by)
     return success_response(page)
+
+
+@router.get("/opponents")
+async def list_opponent_teams(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = TeamService(db)
+    teams = await service.list_opponents(current_user)
+    return success_response(teams)
 
 
 @router.get("/{team_id}")

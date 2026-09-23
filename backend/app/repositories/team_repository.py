@@ -21,7 +21,11 @@ class TeamRepository:
         return result.scalar_one_or_none()
 
     async def list(
-        self, search: Optional[str], limit: int, offset: int
+        self,
+        search: Optional[str],
+        limit: int,
+        offset: int,
+        created_by: Optional[uuid.UUID] = None,
     ) -> Tuple[List[Team], int]:
         query = select(Team)
         count_query = select(func.count()).select_from(Team)
@@ -29,10 +33,29 @@ class TeamRepository:
             like = f"%{search}%"
             query = query.where(Team.name.ilike(like))
             count_query = count_query.where(Team.name.ilike(like))
+        if created_by:
+            query = query.where(Team.created_by == created_by)
+            count_query = count_query.where(Team.created_by == created_by)
 
         total = (await self.db.execute(count_query)).scalar_one()
         result = await self.db.execute(query.order_by(Team.name).limit(limit).offset(offset))
         return list(result.scalars().all()), total
+
+    async def list_opponents(self, created_by: uuid.UUID) -> List[Team]:
+        from app.models.match import Match
+
+        own_ids = select(Team.id).where(Team.created_by == created_by)
+        result = await self.db.execute(
+            select(Team)
+            .join(Match, (Match.team_a_id == Team.id) | (Match.team_b_id == Team.id))
+            .where(
+                Team.id.notin_(own_ids),
+                Match.team_a_id.in_(own_ids) | Match.team_b_id.in_(own_ids),
+            )
+            .distinct()
+            .order_by(Team.name)
+        )
+        return list(result.scalars().all())
 
     async def get_team_player(self, team_id: uuid.UUID, player_id: uuid.UUID) -> Optional[TeamPlayer]:
         result = await self.db.execute(

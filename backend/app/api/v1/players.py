@@ -41,6 +41,16 @@ async def list_players(
     return success_response(page)
 
 
+@router.get("/me")
+async def get_my_player(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = PlayerService(db)
+    player = await service.get_player_by_user_id_or_404(current_user.id)
+    return success_response(PlayerOut.model_validate(player).model_dump())
+
+
 @router.get("/{player_id}")
 async def get_player(player_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     service = PlayerService(db)

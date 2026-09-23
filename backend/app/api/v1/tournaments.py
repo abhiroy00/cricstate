@@ -54,13 +54,16 @@ async def create_tournament(
 @router.get("")
 async def list_tournaments(
     status: TournamentStatus | None = Query(default=None),
+    organizer_id: uuid.UUID | None = Query(default=None),
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
 ):
     service = TournamentService(db)
     page = await service.list_tournaments(
-        status.value if status else None, PageParams(limit=limit, offset=offset)
+        status.value if status else None,
+        PageParams(limit=limit, offset=offset),
+        organizer_id,
     )
     return success_response(page)
 
