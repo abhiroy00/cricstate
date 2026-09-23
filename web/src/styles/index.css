@@ -327,6 +327,400 @@ body {
   font-size: 0.85rem;
 }
 
+/* --- Header nav --- */
+.app-header-nav {
+  display: flex;
+  gap: 16px;
+}
+
+.app-header-nav a {
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.app-header-nav a:hover {
+  color: var(--color-primary);
+}
+
+/* --- List / detail page shells --- */
+.list-page,
+.detail-page {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.list-page-header,
+.detail-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-subtitle {
+  color: var(--color-muted);
+  margin: 2px 0 16px;
+}
+
+.match-result-banner {
+  background: #eaf6f0;
+  color: var(--color-primary-dark);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.inline-form h2 {
+  width: 100%;
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.inline-form .form-field {
+  margin-bottom: 0;
+  min-width: 160px;
+}
+
+/* --- Entity cards / grid --- */
+.entity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.entity-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.entity-card:hover {
+  border-color: var(--color-primary);
+}
+
+.entity-card-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.entity-card-title {
+  font-weight: 600;
+}
+
+.entity-card-subtitle {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+/* --- Roster list --- */
+.roster-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+}
+
+.roster-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.roster-list-item .entity-card {
+  border: none;
+  padding: 0;
+  flex: 1;
+}
+
+.roster-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.badge-approved {
+  background: #dcf5e6;
+  color: var(--color-primary-dark);
+}
+
+.badge-pending {
+  background: #fff4d9;
+  color: #8a6416;
+}
+
+.badge-rejected {
+  background: #fdecea;
+  color: var(--color-danger);
+}
+
+/* --- Data tables --- */
+.table-scroll {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table th {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+/* --- Match cards --- */
+.match-card {
+  display: block;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.match-card:hover {
+  border-color: var(--color-primary);
+}
+
+.match-card-live {
+  border-color: var(--color-danger);
+}
+
+.match-card-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-danger);
+  margin-bottom: 4px;
+}
+
+.match-card-teams {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.match-card-vs {
+  color: var(--color-muted);
+  font-weight: 400;
+  font-size: 0.8rem;
+}
+
+.match-card-meta {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.match-card-result {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+}
+
+/* --- Live score / scorer --- */
+.live-score {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.live-score-main {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.live-score-overs {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-muted);
+}
+
+.live-score-batsmen {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 8px 0;
+  font-size: 0.9rem;
+}
+
+.live-score-bowler {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.live-score-over-balls {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.ball-chip {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.ball-chip-wicket {
+  background: var(--color-danger);
+  color: white;
+}
+
+.live-score-rr {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.scorer-page {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.scorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.scorer-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.scorer-run-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--color-primary);
+  background: white;
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scorer-run-btn:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.scorer-extra-btn,
+.scorer-wicket-btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.scorer-wicket-btn {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* --- Career stats grid --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 8px;
+  background: var(--color-bg);
+  border-radius: var(--radius);
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+}
+
+.scorecard-innings {
+  margin-bottom: 24px;
+}
+
 /* --- Responsive --- */
 @media (max-width: 480px) {
   .auth-card {

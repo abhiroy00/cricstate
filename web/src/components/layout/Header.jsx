@@ -12,6 +12,14 @@ export default function Header() {
         🏏 CricState
       </Link>
       {user && (
+        <nav className="app-header-nav">
+          <Link to="/matches">Matches</Link>
+          <Link to="/teams">Teams</Link>
+          <Link to="/players">Players</Link>
+          <Link to="/tournaments">Tournaments</Link>
+        </nav>
+      )}
+      {user && (
         <div className="app-header-user">
           <Link to="/profile">{user.full_name}</Link>
           <Button variant="secondary" onClick={logout}>
