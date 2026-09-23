@@ -10,7 +10,9 @@ from app.schemas.common import success_response
 from app.schemas.player import PlayerOut
 from app.schemas.team import (
     AddPlayerToTeamRequest,
+    JoinTeamRequest,
     TeamCreate,
+    TeamInviteOut,
     TeamOut,
     TeamRosterEntryOut,
     TeamUpdate,
@@ -77,6 +79,20 @@ async def list_opponent_teams(
     return success_response(teams)
 
 
+@router.post("/join")
+async def join_team(
+    payload: JoinTeamRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = TeamService(db)
+    team_player = await service.join_via_code(current_user, payload.code)
+    return success_response(
+        {**_roster_entry_out(team_player), "team_id": str(team_player.team_id)},
+        message="Joined team",
+    )
+
+
 @router.get("/{team_id}")
 async def get_team(team_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     service = TeamService(db)
@@ -94,6 +110,17 @@ async def update_team(
     service = TeamService(db)
     team = await service.update_team(current_user, team_id, payload)
     return success_response(_team_out(team), message="Team updated")
+
+
+@router.get("/{team_id}/invite")
+async def get_team_invite(
+    team_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = TeamService(db)
+    invite = await service.get_or_create_invite(current_user, team_id)
+    return success_response(TeamInviteOut(code=invite.code).model_dump())
 
 
 @router.get("/{team_id}/roster")

@@ -2,19 +2,20 @@ import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import EmptyState from "../../../components/EmptyState";
-import TabSwitcher from "../../../components/TabSwitcher";
-import { useAuth } from "../../../hooks/useAuth";
-import { extractErrorMessage } from "../../../services/api";
-import { listOpponentTeams, listTeams } from "../../../services/teamService";
-import { colors } from "../../../utils/theme";
+import EmptyState from "../../components/EmptyState";
+import TabSwitcher from "../../components/TabSwitcher";
+import { useAuth } from "../../hooks/useAuth";
+import { extractErrorMessage } from "../../services/api";
+import { listOpponentTeams, listTeams } from "../../services/teamService";
+import { colors } from "../../utils/theme";
 
 const SUB_TABS = [
   { key: "YOUR", label: "Your" },
   { key: "OPPONENTS", label: "Opponents" },
 ];
 
-export default function TeamsSection({ navigation }) {
+export default function TeamPickerScreen({ navigation, route }) {
+  const { onSelect } = route.params;
   const { user } = useAuth();
   const [subTab, setSubTab] = useState("YOUR");
   const [teams, setTeams] = useState(null);
@@ -48,13 +49,14 @@ export default function TeamsSection({ navigation }) {
     }, [subTab])
   );
 
+  function handlePick(team) {
+    onSelect(team);
+    navigation.goBack();
+  }
+
   return (
     <View style={styles.container}>
       <TabSwitcher tabs={SUB_TABS} activeKey={subTab} onChange={setSubTab} size="small" />
-
-      <TouchableOpacity style={styles.joinLink} onPress={() => navigation.navigate("JoinTeam")}>
-        <Text style={styles.joinLinkText}>Have an invite code?</Text>
-      </TouchableOpacity>
 
       {loading && (
         <View style={styles.centered}>
@@ -73,15 +75,12 @@ export default function TeamsSection({ navigation }) {
           title="You are not part of any team as of now"
           subtitle="Why not create your own?"
           ctaLabel="Create Your Team"
-          onPress={() => navigation.navigate("CreateTeam")}
+          onPress={() => navigation.navigate("CreateTeam", { onCreated: handlePick })}
         />
       )}
 
       {!loading && !error && teams && teams.length === 0 && subTab === "OPPONENTS" && (
-        <EmptyState
-          title="No opponent teams yet"
-          subtitle="Teams you've played against will show up here."
-        />
+        <EmptyState title="No opponent teams yet" />
       )}
 
       {!loading && !error && teams && teams.length > 0 && (
@@ -90,14 +89,10 @@ export default function TeamsSection({ navigation }) {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => navigation.navigate("TeamDetail", { teamId: item.id })}
-            >
+            <TouchableOpacity style={styles.card} onPress={() => handlePick(item)}>
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.meta}>
                 {item.player_count} player{item.player_count === 1 ? "" : "s"}
-                {item.home_ground ? ` · ${item.home_ground}` : ""}
               </Text>
             </TouchableOpacity>
           )}
@@ -115,15 +110,6 @@ const styles = StyleSheet.create({
   list: {
     padding: 16,
     paddingTop: 4,
-  },
-  joinLink: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  joinLinkText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.primary,
   },
   centered: {
     flex: 1,

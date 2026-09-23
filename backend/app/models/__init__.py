@@ -10,6 +10,7 @@ from app.models.profile import Profile
 from app.models.refresh_token import RefreshToken
 from app.models.role import Permission, Role, RolePermission, UserRole
 from app.models.team import Team, TeamPlayer
+from app.models.team_invite import TeamInvite
 from app.models.tournament import Tournament, TournamentTeam
 from app.models.user import User
 
@@ -27,6 +28,7 @@ __all__ = [
     "Player",
     "Team",
     "TeamPlayer",
+    "TeamInvite",
     "Tournament",
     "TournamentTeam",
     "Match",

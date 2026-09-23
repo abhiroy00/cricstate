@@ -7,8 +7,10 @@ from app.core.authz import is_owner_or_admin
 from app.core.exceptions import AppError, ForbiddenError, NotFoundError
 from app.models.player import Player, PlayerRole
 from app.models.team import Team, TeamPlayer
+from app.models.team_invite import TeamInvite
 from app.models.user import User
 from app.repositories.player_repository import PlayerRepository
+from app.repositories.team_invite_repository import TeamInviteRepository
 from app.repositories.team_repository import TeamRepository
 from app.schemas.team import (
     AddPlayerToTeamRequest,
@@ -25,6 +27,7 @@ class TeamService:
         self.db = db
         self.teams = TeamRepository(db)
         self.players = PlayerRepository(db)
+        self.invites = TeamInviteRepository(db)
 
     async def create_team(self, current_user: User, payload: TeamCreate) -> Team:
         team = Team(
@@ -165,6 +168,50 @@ class TeamService:
         for field, value in payload.model_dump(exclude_unset=True).items():
             setattr(team_player, field, value)
 
+        await self.db.commit()
+        await self.db.refresh(team_player)
+        return team_player
+
+    async def get_or_create_invite(self, current_user: User, team_id: uuid.UUID) -> TeamInvite:
+        team = await self.get_team_or_404(team_id)
+        await self._require_team_owner(current_user, team)
+
+        existing = await self.invites.get_by_team_id(team_id)
+        if existing:
+            return existing
+
+        invite = TeamInvite(
+            team_id=team_id,
+            code=uuid.uuid4().hex[:8].upper(),
+            created_by=current_user.id,
+        )
+        await self.invites.create(invite)
+        await self.db.commit()
+        await self.db.refresh(invite)
+        return invite
+
+    async def join_via_code(self, current_user: User, code: str) -> TeamPlayer:
+        invite = await self.invites.get_by_code(code)
+        if not invite:
+            raise NotFoundError("Invalid invite code")
+
+        player = await self.players.get_by_user_id(current_user.id)
+        if not player:
+            player = Player(
+                user_id=current_user.id,
+                created_by=current_user.id,
+                full_name=current_user.full_name,
+                role=PlayerRole.BATSMAN.value,
+            )
+            await self.players.create(player)
+            await self.db.flush()
+
+        existing = await self.teams.get_team_player(invite.team_id, player.id)
+        if existing:
+            raise AppError("You are already on this team's roster")
+
+        team_player = TeamPlayer(team_id=invite.team_id, player_id=player.id)
+        await self.teams.add_player(team_player)
         await self.db.commit()
         await self.db.refresh(team_player)
         return team_player

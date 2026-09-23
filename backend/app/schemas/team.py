@@ -50,3 +50,11 @@ class UpdateTeamPlayerRequest(BaseModel):
     is_captain: Optional[bool] = None
     is_vice_captain: Optional[bool] = None
     jersey_number: Optional[int] = None
+
+
+class TeamInviteOut(BaseModel):
+    code: str
+
+
+class JoinTeamRequest(BaseModel):
+    code: str

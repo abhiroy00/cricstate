@@ -203,6 +203,69 @@ async def test_list_teams_created_by_filter(client: AsyncClient):
     assert body[0]["name"] == "Owner11 XI"
 
 
+async def test_get_invite_owner_only(client: AsyncClient):
+    owner = await _register(client, "owner15", "owner15@example.com")
+    intruder = await _register(client, "intruder3", "intruder3@example.com")
+    team = await _create_team(client, owner, "Owner15 XI")
+
+    denied = await client.get(f"/api/v1/teams/{team['id']}/invite", headers=_auth_header(intruder))
+    assert denied.status_code == 403
+
+    response = await client.get(f"/api/v1/teams/{team['id']}/invite", headers=_auth_header(owner))
+    assert response.status_code == 200
+    code1 = response.json()["data"]["code"]
+    assert len(code1) == 8
+
+    # Fetching again returns the same code rather than minting a new one.
+    again = await client.get(f"/api/v1/teams/{team['id']}/invite", headers=_auth_header(owner))
+    assert again.json()["data"]["code"] == code1
+
+
+async def test_join_team_via_code_auto_creates_player(client: AsyncClient):
+    owner = await _register(client, "owner16", "owner16@example.com")
+    joiner = await _register(client, "joiner1", "joiner1@example.com")
+    team = await _create_team(client, owner, "Owner16 XI")
+
+    invite = await client.get(f"/api/v1/teams/{team['id']}/invite", headers=_auth_header(owner))
+    code = invite.json()["data"]["code"]
+
+    response = await client.post(
+        "/api/v1/teams/join", json={"code": code}, headers=_auth_header(joiner)
+    )
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["data"]["team_id"] == team["id"]
+    assert body["data"]["player"]["full_name"] == "Joiner1"
+
+    roster = await client.get(f"/api/v1/teams/{team['id']}/roster")
+    assert len(roster.json()["data"]) == 1
+
+
+async def test_join_team_duplicate_rejected(client: AsyncClient):
+    owner = await _register(client, "owner17", "owner17@example.com")
+    joiner = await _register(client, "joiner2", "joiner2@example.com")
+    team = await _create_team(client, owner, "Owner17 XI")
+
+    invite = await client.get(f"/api/v1/teams/{team['id']}/invite", headers=_auth_header(owner))
+    code = invite.json()["data"]["code"]
+
+    first = await client.post("/api/v1/teams/join", json={"code": code}, headers=_auth_header(joiner))
+    assert first.status_code == 200
+
+    second = await client.post("/api/v1/teams/join", json={"code": code}, headers=_auth_header(joiner))
+    assert second.status_code == 400
+
+
+async def test_join_team_invalid_code_rejected(client: AsyncClient):
+    joiner = await _register(client, "joiner3", "joiner3@example.com")
+
+    response = await client.post(
+        "/api/v1/teams/join", json={"code": "NOTREAL1"}, headers=_auth_header(joiner)
+    )
+    assert response.status_code == 404
+
+
 async def test_list_opponent_teams(client: AsyncClient):
     owner = await _register(client, "owner13", "owner13@example.com")
     rival = await _register(client, "owner14", "owner14@example.com")

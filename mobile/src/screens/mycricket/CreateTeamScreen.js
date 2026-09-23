@@ -7,7 +7,8 @@ import { extractErrorMessage } from "../../services/api";
 import { createTeam } from "../../services/teamService";
 import { colors } from "../../utils/theme";
 
-export default function CreateTeamScreen({ navigation }) {
+export default function CreateTeamScreen({ navigation, route }) {
+  const onCreated = route?.params?.onCreated;
   const [name, setName] = useState("");
   const [homeGround, setHomeGround] = useState("");
   const [error, setError] = useState("");
@@ -22,7 +23,12 @@ export default function CreateTeamScreen({ navigation }) {
     setError("");
     try {
       const team = await createTeam({ name: name.trim(), home_ground: homeGround || null });
-      navigation.replace("TeamDetail", { teamId: team.id });
+      if (onCreated) {
+        onCreated(team);
+        navigation.goBack();
+      } else {
+        navigation.replace("TeamDetail", { teamId: team.id });
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {

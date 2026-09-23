@@ -1,13 +1,19 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 
 import Button from "../../components/Button";
 import EmptyState from "../../components/EmptyState";
 import Input from "../../components/Input";
 import { useAuth } from "../../hooks/useAuth";
 import { extractErrorMessage } from "../../services/api";
-import { addPlayerToRoster, getRoster, getTeam, updateTeamPlayer } from "../../services/teamService";
+import {
+  addPlayerToRoster,
+  getRoster,
+  getTeam,
+  getTeamInvite,
+  updateTeamPlayer,
+} from "../../services/teamService";
 import { colors } from "../../utils/theme";
 
 export default function TeamDetailScreen({ route }) {
@@ -19,6 +25,7 @@ export default function TeamDetailScreen({ route }) {
   const [error, setError] = useState("");
   const [newPlayerName, setNewPlayerName] = useState("");
   const [adding, setAdding] = useState(false);
+  const [inviting, setInviting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -66,6 +73,21 @@ export default function TeamDetailScreen({ route }) {
     }
   }
 
+  async function handleInvite() {
+    setInviting(true);
+    setError("");
+    try {
+      const invite = await getTeamInvite(teamId);
+      await Share.share({
+        message: `Join my team "${team.name}" on CricState! Open the app, go to My Cricket > Teams > "Have an invite code?" and enter: ${invite.code}`,
+      });
+    } catch (err) {
+      setError(extractErrorMessage(err));
+    } finally {
+      setInviting(false);
+    }
+  }
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -92,6 +114,10 @@ export default function TeamDetailScreen({ route }) {
 
       {isOwner && (
         <View style={styles.addForm}>
+          <Button variant="secondary" onPress={handleInvite} loading={inviting}>
+            Invite Players
+          </Button>
+          <View style={styles.addFormSpacer} />
           <Input
             label="Add a player"
             value={newPlayerName}
@@ -155,6 +181,9 @@ const styles = StyleSheet.create({
   addForm: {
     marginTop: 16,
     marginBottom: 8,
+  },
+  addFormSpacer: {
+    height: 16,
   },
   sectionHeading: {
     fontSize: 15,

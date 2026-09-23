@@ -36,3 +36,13 @@ export async function updateTeamPlayer(teamId, playerId, payload) {
   const response = await api.patch(`/teams/${teamId}/roster/${playerId}`, payload);
   return response.data.data;
 }
+
+export async function getTeamInvite(teamId) {
+  const response = await api.get(`/teams/${teamId}/invite`);
+  return response.data.data;
+}
+
+export async function joinTeamByCode(code) {
+  const response = await api.post("/teams/join", { code });
+  return response.data.data;
+}
