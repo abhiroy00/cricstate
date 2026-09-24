@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import ComingSoonScreen from "../screens/common/ComingSoonScreen";
+import CommunityStack from "./CommunityStack";
 import HomeStack from "./HomeStack";
 import LookingStack from "./LookingStack";
 import StoreStack from "./StoreStack";
@@ -31,7 +32,7 @@ export default function MainTabs() {
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Looking" component={LookingStack} />
       <Tab.Screen name="My Cricket" component={MyCricketStack} />
-      <Tab.Screen name="Community" component={ComingSoonScreen} initialParams={{ title: "Community" }} />
+      <Tab.Screen name="Community" component={CommunityStack} />
       <Tab.Screen name="Store" component={StoreStack} />
     </Tab.Navigator>
   );

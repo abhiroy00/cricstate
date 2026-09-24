@@ -1,33 +1,21 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 
-import ComingSoonScreen from "../screens/common/ComingSoonScreen";
-import { DRAWER_ITEMS } from "../utils/drawerItems";
+import InfoScreen from "../screens/common/InfoScreen";
 import MainTabs from "./MainTabs";
 import ProfileStack from "./ProfileStack";
+import AppDrawerContent from "./AppDrawerContent";
 
 const Drawer = createDrawerNavigator();
 
 export default function AppDrawer() {
   return (
-    <Drawer.Navigator screenOptions={{ headerTitle: "CricState" }}>
-      <Drawer.Screen
-        name="Main"
-        component={MainTabs}
-        options={{ headerShown: false, drawerLabel: "Home", title: "CricState" }}
-      />
-      <Drawer.Screen
-        name="ProfileRoot"
-        component={ProfileStack}
-        options={{ headerShown: false, drawerLabel: "Profile", title: "Profile" }}
-      />
-      {DRAWER_ITEMS.map((title) => (
-        <Drawer.Screen
-          key={title}
-          name={title}
-          component={ComingSoonScreen}
-          initialParams={{ title }}
-        />
-      ))}
+    <Drawer.Navigator
+      screenOptions={{ headerShown: false, drawerStyle: { width: "82%" } }}
+      drawerContent={(props) => <AppDrawerContent {...props} />}
+    >
+      <Drawer.Screen name="Main" component={MainTabs} />
+      <Drawer.Screen name="ProfileRoot" component={ProfileStack} />
+      <Drawer.Screen name="Info" component={InfoScreen} />
     </Drawer.Navigator>
   );
 }
