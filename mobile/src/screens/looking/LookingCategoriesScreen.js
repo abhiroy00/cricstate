@@ -4,23 +4,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const RED = "#D71920";
 
 const TILES = [
-  { label: "Teams for my tournament", emoji: "👥", type: "Player", need: "Players for tournament" },
-  { label: "Tournaments to join", emoji: "🏆", type: "Player", need: "Tournament to join" },
-  { label: "Opponent teams", emoji: "⚔️", type: "Opponent", need: "" },
-  { label: "Teams to join", emoji: "🤝", type: "Player", need: "Team to join" },
-  { label: "Players for my team", emoji: "🧍", type: "Player", need: "" },
-  { label: "Cricket grounds", emoji: "🏟️", type: "Player", need: "Cricket ground" },
-  { label: "Umpires", emoji: "🧢", type: "Umpire", need: "" },
-  { label: "Scorers", emoji: "📋", type: "Scorer", need: "" },
-  { label: "Commentators", emoji: "🎙️", type: "Player", need: "Commentator" },
-  { label: "Live streamers", emoji: "🔴", type: "Player", need: "Live streamer" },
+  { label: "Teams for my tournament", emoji: "👥", formKey: "tournament-teams" },
+  { label: "Tournaments to join", emoji: "🏆", formKey: "tournaments-join" },
+  { label: "Opponent teams", emoji: "⚔️", formKey: "opponent" },
+  { label: "Teams to join", emoji: "🤝", formKey: "teams-join" },
+  { label: "Players for my team", emoji: "🧍", formKey: "players" },
+  { label: "Cricket grounds", emoji: "🏟️", formKey: "grounds" },
+  { label: "Umpires", emoji: "🧢", formKey: "umpires" },
+  { label: "Scorers", emoji: "📋", formKey: "scorers" },
+  { label: "Commentators", emoji: "🎙️", formKey: "commentators" },
+  { label: "Live streamers", emoji: "🔴", formKey: "live" },
 ];
 
 export default function LookingCategoriesScreen({ navigation }) {
   const pick = (tile) => {
-    navigation.navigate("LookingMain", {
-      compose: { type: tile.type, need: tile.need },
-    });
+    if (tile.formKey === "live") {
+      navigation.navigate("LiveStreamers");
+      return;
+    }
+    navigation.navigate("LookingForm", { formKey: tile.formKey });
   };
 
   return (
