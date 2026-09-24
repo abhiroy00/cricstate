@@ -10,6 +10,15 @@ import TournamentsSection from "./sections/TournamentsSection";
 import FilterSheet from "../../components/FilterSheet";
 import SearchOverlay from "../../components/SearchOverlay";
 import AppLogo from "../../components/AppLogo";
+import DreamHeader from "../../components/DreamHeader";
+import ProPill from "../../components/ProPill";
+import {
+  ChatGlyph,
+  FilterGlyph,
+  HeaderIconBtn,
+  MenuGlyph,
+  SearchGlyph,
+} from "../../components/HeaderIcon";
 
 const SECTIONS = [
   { key: "MATCHES", label: "Matches" },
@@ -27,40 +36,31 @@ const SECTION_COMPONENTS = {
   HIGHLIGHTS: HighlightsSection,
 };
 
-const RED = "#EA580C";
-const TEAL = "#199A8E";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 
 function AppHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterCount }) {
   return (
-    <View style={styles.header}>
+    <DreamHeader style={styles.header}>
       <View style={styles.headerLeft}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
-          <Text style={styles.headerIcon}>☰</Text>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onMenu} label="Menu">
+          <MenuGlyph />
+        </HeaderIconBtn>
         <AppLogo />
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
-          <Text style={styles.proBtnText}>PRO @ ₹199</Text>
-        </TouchableOpacity>
+        <ProPill onPress={onPro} />
       </View>
       <View style={styles.headerRight}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onSearch}>
-          <Text style={styles.searchIcon}>⌕</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMessage}>
-          <Text style={styles.headerIcon}>💬</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={10} style={styles.headerBtn} onPress={onFilter}>
-          <View>
-            <Text style={styles.headerIcon}>⧩</Text>
-            {filterCount > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{filterCount}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onSearch} label="Search">
+          <SearchGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onMessage} label="Messages">
+          <ChatGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onFilter} label="Filter" badge={filterCount}>
+          <FilterGlyph active={filterCount > 0} />
+        </HeaderIconBtn>
       </View>
-    </View>
+    </DreamHeader>
   );
 }
 
@@ -141,12 +141,17 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 10,
+    paddingBottom: 13,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   headerLeft: {
     flexDirection: "row",
@@ -156,19 +161,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  headerBtn: {
-    padding: 6,
-  },
-  headerIcon: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  searchIcon: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+    gap: 6,
   },
   logoWrap: {
     marginLeft: 6,
@@ -274,15 +267,17 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   tabLabelActive: {
-    color: "#111",
-    fontWeight: "600",
+    color: RED,
+    fontWeight: "800",
   },
   tabUnderline: {
     marginTop: 10,
-    height: 3,
+    height: 4,
     width: "100%",
     backgroundColor: RED,
     borderRadius: 2,
+    borderBottomWidth: 1.5,
+    borderBottomColor: "#FFC42E",
   },
   body: {
     flex: 1,

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
+  Easing,
   Modal,
   PanResponder,
   Pressable,
@@ -11,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { RED } from "../../data/storeData";
 
 const MENU_SECTIONS = [
   { id: "orders", label: "My Orders", children: [] },
@@ -46,20 +49,50 @@ const PANEL_WIDTH = Math.min(SCREEN_WIDTH * 0.8, 340);
 
 export default function StoreMenuDrawer({ visible, userName, onClose, onExitStore, onSelect, onContact }) {
   const [expandedId, setExpandedId] = useState(null);
+  // App-drawer jaisa smooth open/close: band hote waqt bhi slide-out + fade,
+  // phir unmount (pehle turant gayab ho jata tha).
+  const [rendered, setRendered] = useState(visible);
   const slideAnim = useRef(new Animated.Value(-PANEL_WIDTH)).current;
+  const dimAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    slideAnim.stopAnimation();
+    dimAnim.stopAnimation();
     if (visible) {
+      setRendered(true);
       setExpandedId(null);
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    } else {
       slideAnim.setValue(-PANEL_WIDTH);
+      dimAnim.setValue(0);
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 260,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(dimAnim, {
+          toValue: 1,
+          duration: 260,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (rendered) {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: -PANEL_WIDTH,
+          duration: 220,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(dimAnim, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start(() => setRendered(false));
     }
-  }, [visible, slideAnim]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   const handleRowPress = (section) => {
     if (section.children.length === 0) {
@@ -69,46 +102,61 @@ export default function StoreMenuDrawer({ visible, userName, onClose, onExitStor
     setExpandedId((prev) => (prev === section.id ? null : section.id));
   };
 
-  // Swipe left on the panel to close (back to store)
+  // Swipe left on the panel to close (back to store) — app drawer jaisa.
+  // Release pe sirf onClose bolo, slide-out animation effect sambhal lega.
   const pan = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, g) =>
-        Math.abs(g.dx) > 12 && Math.abs(g.dy) < 30,
+        g.dx < -10 && Math.abs(g.dx) > Math.abs(g.dy) * 1.4,
       onPanResponderMove: (_, g) => {
-        if (g.dx < 0) slideAnim.setValue(g.dx);
+        if (g.dx < 0) {
+          slideAnim.setValue(g.dx);
+          dimAnim.setValue(Math.max(0, 1 + g.dx / PANEL_WIDTH));
+        }
       },
       onPanResponderRelease: (_, g) => {
-        if (g.dx < -70) {
-          Animated.timing(slideAnim, {
-            toValue: -PANEL_WIDTH,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => onClose?.());
+        if (g.dx < -70 || g.vx < -0.6) {
+          // Drag position se smooth slide-out — effect animate karega
+          onClose?.();
         } else {
-          Animated.spring(slideAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
+          Animated.parallel([
+            Animated.spring(slideAnim, {
+              toValue: 0,
+              friction: 9,
+              tension: 320,
+              useNativeDriver: true,
+            }),
+            Animated.timing(dimAnim, {
+              toValue: 1,
+              duration: 160,
+              useNativeDriver: true,
+            }),
+          ]).start();
         }
       },
     })
   ).current;
 
+  if (!rendered && !visible) return null;
+
   return (
     <Modal
-      visible={visible}
+      visible={rendered}
       transparent
       animationType="none"
       statusBarTranslucent
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        {/* Invisible tap-catcher: any tap outside the panel goes back to store */}
+        {/* App-drawer jaisa dim + tap-catcher */}
+        <Animated.View
+          style={[styles.dimLayer, { opacity: dimAnim }]}
+          pointerEvents="none"
+        />
         <Pressable
           style={styles.backdrop}
           onPress={onClose}
-          onPressIn={onClose}
         />
 
         <Animated.View
@@ -128,11 +176,11 @@ export default function StoreMenuDrawer({ visible, userName, onClose, onExitStor
               return (
                 <View key={s.id}>
                   <TouchableOpacity
-                    style={styles.row}
+                    style={[styles.row, expanded && styles.rowOpen]}
                     activeOpacity={0.7}
                     onPress={() => handleRowPress(s)}
                   >
-                    <Text style={styles.rowLabel}>{s.label}</Text>
+                    <Text style={[styles.rowLabel, expanded && styles.rowLabelOpen]}>{s.label}</Text>
                     {hasChildren && (
                       <Text style={[styles.rowArrow, expanded && styles.rowArrowOpen]}>
                         ∨
@@ -213,6 +261,10 @@ const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
+  dimLayer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(10,8,20,0.5)",
+  },
   panel: {
     width: PANEL_WIDTH,
     backgroundColor: "#fff",
@@ -242,15 +294,17 @@ const styles = StyleSheet.create({
     lineHeight: 26,
   },
   greetHeader: {
-    backgroundColor: "#3D3D3D",
+    backgroundColor: RED,
     paddingHorizontal: 18,
     paddingVertical: 22,
     paddingTop: 28,
+    borderBottomWidth: 3,
+    borderBottomColor: "#FFC42E",
   },
   greetText: {
     color: "#fff",
     fontSize: 26,
-    fontWeight: "500",
+    fontWeight: "700",
   },
   list: {
     flex: 1,
@@ -263,10 +317,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 20,
   },
+  rowOpen: {
+    backgroundColor: "#FFF4F4",
+    marginHorizontal: -18,
+    paddingHorizontal: 18,
+    borderLeftWidth: 4,
+    borderLeftColor: RED,
+  },
   rowLabel: {
     fontSize: 17,
     color: "#222",
     fontWeight: "400",
+  },
+  rowLabelOpen: {
+    color: RED,
+    fontWeight: "800",
   },
   rowArrow: {
     fontSize: 18,
@@ -279,10 +344,15 @@ const styles = StyleSheet.create({
   childRow: {
     paddingVertical: 11,
     paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: "#F8C4C6",
+    marginLeft: 2,
+    marginVertical: 1,
   },
   childLabel: {
     fontSize: 15,
-    color: "#555",
+    color: "#444",
+    fontWeight: "500",
   },
   thinDivider: {
     height: 1,
@@ -290,7 +360,7 @@ const styles = StyleSheet.create({
   },
   thickDivider: {
     height: 8,
-    backgroundColor: "#F2F2F2",
+    backgroundColor: "#FDECEC",
     marginHorizontal: -18,
     marginTop: 8,
     marginBottom: 18,
@@ -306,19 +376,21 @@ const styles = StyleSheet.create({
   },
   contactBtn: {
     flex: 1,
-    backgroundColor: "#F2F2F2",
+    backgroundColor: "#171A4B",
     borderRadius: 16,
     height: 88,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
+    borderWidth: 1.5,
+    borderColor: "#FFC42E",
   },
   contactBtnLast: {
     marginRight: 0,
   },
   contactIcon: {
     fontSize: 34,
-    color: "#111",
+    color: "#FFC42E",
     fontWeight: "400",
   },
   exitRow: {
@@ -331,11 +403,13 @@ const styles = StyleSheet.create({
   },
   exitArrow: {
     fontSize: 18,
-    color: "#9A9A9A",
+    color: RED,
     marginRight: 8,
+    fontWeight: "700",
   },
   exitText: {
     fontSize: 16,
-    color: "#9A9A9A",
+    color: RED,
+    fontWeight: "700",
   },
 });

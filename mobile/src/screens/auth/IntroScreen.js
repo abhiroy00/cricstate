@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 
-const NAVY = "#0A1642";
+const NAVY = "#E01A22";
 const RED = "#E63329";
 const ORANGE = "#EA580C";
 

@@ -16,10 +16,19 @@ import { useAuth } from "../../hooks/useAuth";
 import { CLUB_POSTS, CONTACT_MATCHES, CRICKETERS } from "../../data/feedData";
 import SearchOverlay from "../../components/SearchOverlay";
 import AppLogo from "../../components/AppLogo";
+import DreamHeader from "../../components/DreamHeader";
+import ProPill from "../../components/ProPill";
+import {
+  BellGlyph,
+  ChatGlyph,
+  HeaderIconBtn,
+  MenuGlyph,
+  SearchGlyph,
+} from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const RED_DARK = "#C2410C";
-const TEAL = "#0FA3A3";
+const RED = "#E01A22";
+const RED_DARK = "#A60E14";
+const TEAL = "#00A651";
 const ORANGE = "#F5A623";
 const GREY_BG = "#F2F2F2";
 
@@ -50,31 +59,26 @@ const JERSEYS = [
 
 function Header({ onSearch, onBell, onInbox, onMenu, onPro, showBellDot = true }) {
   return (
-    <View style={styles.header}>
+    <DreamHeader style={styles.header}>
       <View style={styles.headerLeft}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
-          <Text style={styles.headerIcon}>☰</Text>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onMenu} label="Menu">
+          <MenuGlyph />
+        </HeaderIconBtn>
         <AppLogo />
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
-          <Text style={styles.proBtnText}>PRO @ ₹199</Text>
-        </TouchableOpacity>
+        <ProPill onPress={onPro} />
       </View>
       <View style={styles.headerRight}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onSearch}>
-          <Text style={styles.searchIcon}>⌕</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onInbox}>
-          <Text style={styles.headerIcon}>💬</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onBell}>
-          <View>
-            <Text style={styles.headerIcon}>🔔</Text>
-            {showBellDot && <View style={styles.bellDot} />}
-          </View>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onSearch} label="Search">
+          <SearchGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onInbox} label="Messages">
+          <ChatGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onBell} label="Notifications" dot={showBellDot}>
+          <BellGlyph ring={showBellDot} />
+        </HeaderIconBtn>
       </View>
-    </View>
+    </DreamHeader>
   );
 }
 
@@ -811,14 +815,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
-  /* Header */
+  /* Header — Dream11-style dynamic red gradient (DreamHeader) + gold strip */
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 10,
+    paddingBottom: 13,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   headerLeft: {
     flexDirection: "row",
@@ -828,19 +837,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  headerBtn: {
-    padding: 6,
-  },
-  headerIcon: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  searchIcon: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+    gap: 6,
   },
   logoWrap: {
     marginLeft: 6,

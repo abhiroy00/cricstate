@@ -14,9 +14,17 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import FilterSheet from "../../components/FilterSheet";
 import { ROLES } from "./roleData";
+import DreamHeader from "../../components/DreamHeader";
+import {
+  BackGlyph,
+  FilterGlyph,
+  HeaderIconBtn,
+  SearchGlyph,
+  ShareGlyph,
+} from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#0FA3A3";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const DEFAULT_SCOPE = "New Bongaigaon Railway Colony - September";
 
 function initialsOf(name = "") {
@@ -138,44 +146,29 @@ export default function RoleBoardScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.iconBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.headerIcon}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {filtered ? "Community" : role.title}
         </Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
-            onPress={() => setSearchOn((v) => !v)}
-          >
-            <Text style={styles.headerIcon}>⌕</Text>
-          </TouchableOpacity>
-          <TouchableOpacity hitSlop={12} style={styles.iconBtn} onPress={shareBoard}>
-            <Text style={styles.headerIcon}>↗</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
+          <HeaderIconBtn onPress={() => setSearchOn((v) => !v)} label="Search">
+            <SearchGlyph />
+          </HeaderIconBtn>
+          <HeaderIconBtn onPress={shareBoard} label="Share">
+            <ShareGlyph />
+          </HeaderIconBtn>
+          <HeaderIconBtn
             onPress={() => setSheetOpen(true)}
+            label="Filter"
+            badge={badge}
           >
-            <View>
-              <Text style={styles.headerIcon}>⧩</Text>
-              {badge > 0 && (
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>{badge}</Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
+            <FilterGlyph active={badge > 0} />
+          </HeaderIconBtn>
         </View>
-      </View>
+      </DreamHeader>
 
       {searchOn && !filtered && (
         <View style={styles.searchRow}>
@@ -331,12 +324,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   iconBtn: {
     padding: 6,

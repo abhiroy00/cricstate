@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
 const BG = "#141414";
 const CARD = "#1F2A2E";
-const TEAL = "#199A8E";
+const TEAL = "#00A651";
 const TEAL_BRIGHT = "#1FA89B";
-const RED = "#EA580C";
+const RED = "#E01A22";
 
 const PRIVILEGES = [
   { icon: "📊", text: "Track your\nprogress" },
@@ -110,13 +112,13 @@ export default function ProBenefitsScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={BG} />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation.goBack()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle}>Why become PRO?</Text>
         <View style={styles.backBtn} />
-      </View>
+      </DreamHeader>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.privHeader}>
@@ -204,11 +206,18 @@ const styles = StyleSheet.create({
     backgroundColor: BG,
   },
   header: {
-    backgroundColor: BG,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
+    backgroundColor: BG,
   },
   backBtn: {
     width: 40,

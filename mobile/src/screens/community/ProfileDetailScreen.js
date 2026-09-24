@@ -10,9 +10,11 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#0E9E9B";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const INK = "#1A1A1A";
 const DARK = "#141414";
 const GREY = "#8A8A8A";
@@ -168,14 +170,10 @@ export default function ProfileDetailScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.backBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <View style={{ flex: 1 }} />
         <TouchableOpacity hitSlop={12} style={styles.headerBtn}>
           <ShareIcon />
@@ -183,7 +181,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
         <TouchableOpacity hitSlop={12} style={styles.headerBtn}>
           <FilterIcon count={5} />
         </TouchableOpacity>
-      </View>
+      </DreamHeader>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -345,11 +343,18 @@ const styles = StyleSheet.create({
     backgroundColor: DARK,
   },
   header: {
-    backgroundColor: DARK,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
+    backgroundColor: DARK,
   },
   backBtn: {
     padding: 6,

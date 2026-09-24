@@ -18,9 +18,15 @@ import { extractErrorMessage } from "../../services/api";
 import { fetchMyProfile } from "../../services/profileService";
 import { clearTokens } from "../../utils/storage";
 import { colors } from "../../utils/theme";
+import DreamHeader from "../../components/DreamHeader";
+import {
+  BackGlyph,
+  HeaderIconBtn,
+  PencilGlyph,
+} from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#0FA3A3";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const PINK = "#FEF3EB";
 
 function MiniJersey({ color, accent, name, no }) {
@@ -151,23 +157,18 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.iconBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.headerIcon}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle}>Your cricket profile</Text>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.iconBtn}
+        <HeaderIconBtn
           onPress={() => navigation.navigate("EditProfile", { profile })}
+          label="Edit profile"
         >
-          <Text style={styles.headerIcon}>›</Text>
-        </TouchableOpacity>
-      </View>
+          <PencilGlyph />
+        </HeaderIconBtn>
+      </DreamHeader>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.pinkCard}>
@@ -348,12 +349,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   iconBtn: {
     padding: 6,

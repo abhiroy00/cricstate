@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-const TEAL = "#0E9E9B";
+const TEAL = "#00A651";
 const TEAL_LIGHT = "#45B8AC";
-const RED = "#D71920";
+const RED = "#E01A22";
 const STAR = "#F5A623";
 const PAGE = "#FFFFFF";
 

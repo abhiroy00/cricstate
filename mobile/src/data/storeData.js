@@ -1,5 +1,5 @@
-export const RED = "#EA580C";
-export const TEAL = "#0FA3A3";
+export const RED = "#E01A22";
+export const TEAL = "#00A651";
 
 export const CATEGORIES = [
   { label: "New Launch", emoji: "✨", screen: "DesignOfMonth", title: "Design of The Month" },
@@ -17,11 +17,11 @@ export const CATEGORIES = [
 ];
 
 export const BANNERS = [
-  { id: "1", top: "Some classics never fade.", title: "Eternal\nWhites", cta: "Explore now", bg: "#6E6E6E", screen: "TimelessClassics", params: { title: "Timeless Classics" } },
-  { id: "2", top: "New season. New gear.", title: "Pro\nEdition", cta: "Shop now", bg: "#0B6E4F", screen: "DesignOfMonth", params: { title: "Design of The Month" } },
-  { id: "3", top: "Built for match day.", title: "Match\nReady", cta: "Explore now", bg: "#9A3412", screen: "Bestsellers", params: { title: "Bestsellers" } },
+  { id: "1", top: "Some classics never fade.", title: "Eternal\nWhites", cta: "Explore now", bg: "#E01A22", screen: "TimelessClassics", params: { title: "Timeless Classics" } },
+  { id: "2", top: "New season. New gear.", title: "Pro\nEdition", cta: "Shop now", bg: "#171A4B", screen: "DesignOfMonth", params: { title: "Design of The Month" } },
+  { id: "3", top: "Built for match day.", title: "Match\nReady", cta: "Explore now", bg: "#A60E14", screen: "Bestsellers", params: { title: "Bestsellers" } },
   { id: "4", top: "Clearance sale live.", title: "Up to\n50% Off", cta: "Grab now", bg: "#B45309", screen: "Clearance", params: { title: "Clearance" } },
-  { id: "5", top: "Under ₹499 picks.", title: "Budget\nBuys", cta: "View all", bg: "#1E3A8A", screen: "PicksUnder499", params: { title: "Picks Under ₹499" } },
+  { id: "5", top: "Under ₹499 picks.", title: "Budget\nBuys", cta: "View all", bg: "#23256B", screen: "PicksUnder499", params: { title: "Picks Under ₹499" } },
 ];
 
 const APPAREL_SIZES = ["S", "M", "L", "XL", "XXL"];

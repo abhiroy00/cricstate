@@ -12,9 +12,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../hooks/useAuth";
 import { useLooking } from "./LookingContext";
+import DreamHeader from "../../components/DreamHeader";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#0FA3A3";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const DEFAULT_WHERE = "New Bongaigaon Railway Colony";
 
 const BALLS = [
@@ -644,19 +646,15 @@ export default function LookingFormScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.backBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {form.title}
         </Text>
         <View style={{ width: 36 }} />
-      </View>
+      </DreamHeader>
 
       {form.register ? (
         <RegisterStreamer user={user} onDone={submit} />
@@ -690,12 +688,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   backBtn: {
     padding: 6,

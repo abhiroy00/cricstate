@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 
-const TEAL = "#199A8E";
+const TEAL = "#00A651";
 
 const LOCATIONS = [
   "New Bongaigaon Railway Colony",

@@ -10,9 +10,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import {
+  BackGlyph,
+  FilterGlyph,
+  HeaderIconBtn,
+  SearchGlyph,
+} from "../../components/HeaderIcon";
 
-const RED = "#D71920";
-const TEAL = "#0E9E9B";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const BASE_COUNT = 28;
 
 const CITIES = ["Delhi", "Mumbai", "Bengaluru", "Chennai", "Kolkata", "Hyderabad"];
@@ -162,27 +169,26 @@ export default function AcademiesScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity hitSlop={12} style={styles.backBtn} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           Community
         </Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity hitSlop={12} style={styles.iconBtn} onPress={() => setSearchOn((v) => !v)}>
-            <Text style={styles.headerIcon}>⌕</Text>
-          </TouchableOpacity>
-          <TouchableOpacity hitSlop={12} style={styles.iconBtn}>
-            <View>
-              <Text style={styles.headerIcon}>⧩</Text>
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>1</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+<HeaderIconBtn onPress={() => setSearchOn((v) => !v)} label="Search">
+  <SearchGlyph />
+</HeaderIconBtn>
+<HeaderIconBtn
+  onPress={() => { setQuery(""); setSearchOn(false); }}
+  label="Clear filters"
+  badge={query ? 1 : 0}
+>
+  <FilterGlyph active={!!query} />
+</HeaderIconBtn>
         </View>
-      </View>
+      </DreamHeader>
 
       {searchOn && (
         <View style={styles.searchRow}>
@@ -317,12 +323,17 @@ export default function AcademiesScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#F5F5F5" },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   backBtn: { padding: 6 },
   backArrow: { color: "#fff", fontSize: 26, fontWeight: "700" },

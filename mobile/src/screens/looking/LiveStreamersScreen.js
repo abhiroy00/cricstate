@@ -8,9 +8,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import {
+  BackGlyph,
+  FilterGlyph,
+  HeaderIconBtn,
+  SearchGlyph,
+} from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#0FA3A3";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 
 const STREAMERS = [
   {
@@ -134,41 +141,26 @@ export default function LiveStreamersScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.iconBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.headerIcon}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           Live streamer ({liveCount})
         </Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
-            onPress={() => setSearchOn((v) => !v)}
-          >
-            <Text style={styles.headerIcon}>⌕</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
+          <HeaderIconBtn onPress={() => setSearchOn((v) => !v)} label="Search">
+            <SearchGlyph />
+          </HeaderIconBtn>
+          <HeaderIconBtn
             onPress={() => navigation?.navigate?.("LiveFilter")}
+            label="Filter"
+            badge={cities.length}
           >
-            <View>
-              <Text style={styles.headerIcon}>⧩</Text>
-              {cities.length > 0 && (
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>{cities.length}</Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
+            <FilterGlyph active={cities.length > 0} />
+          </HeaderIconBtn>
         </View>
-      </View>
+      </DreamHeader>
 
       {searchOn && (
         <View style={styles.searchRow}>
@@ -241,12 +233,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   iconBtn: {
     padding: 6,
@@ -259,7 +256,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#fff",
     fontSize: 20,
-    fontWeight: "500",
+    fontWeight: "700",
     flex: 1,
     marginLeft: 8,
   },

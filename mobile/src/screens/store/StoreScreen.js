@@ -28,6 +28,13 @@ import ProductDetailModal from "./ProductDetailModal";
 import { useCart } from "./StoreCartContext";
 import StoreMenuDrawer from "./StoreMenuDrawer";
 import AppLogo from "../../components/AppLogo";
+import DreamHeader from "../../components/DreamHeader";
+import {
+  BackGlyph,
+  BagGlyph,
+  HeaderIconBtn,
+  SearchGlyph,
+} from "../../components/HeaderIcon";
 
 function HeroBanner({ item, onPress }) {
   return (
@@ -201,9 +208,18 @@ export default function StoreScreen({ navigation }) {
   const [policy, setPolicy] = useState(null);
   const bannerRef = useRef(null);
   const bannerIndex = useRef(0);
+  const bannerTouch = useRef(false);
+  const bestRef = useRef(null);
+  const bestIndex = useRef(0);
+  const bestTouch = useRef(false);
+  const newRef = useRef(null);
+  const newIndex = useRef(0);
+  const newTouch = useRef(false);
 
+  // Hero banner: har 3 second me next card (user drag kar raha ho to ruko)
   useEffect(() => {
     const id = setInterval(() => {
+      if (bannerTouch.current) return;
       bannerIndex.current = (bannerIndex.current + 1) % BANNERS.length;
       const w = Dimensions.get("window").width - 32;
       bannerRef.current?.scrollToOffset({
@@ -211,7 +227,7 @@ export default function StoreScreen({ navigation }) {
         animated: true,
       });
       setActiveBanner(bannerIndex.current);
-    }, 3500);
+    }, 3000);
     return () => clearInterval(id);
   }, []);
 
@@ -219,17 +235,41 @@ export default function StoreScreen({ navigation }) {
   const bestPages = useMemo(() => {
     const all = productsIn("bestsellers");
     const pages = [];
-    for (let i = 0; i < all.length; i += 2) pages.push(all.slice(i, i + 2));
+    for (let i = 0; i < all.length; i += 1) pages.push(all.slice(i, i + 1));
     return pages;
   }, []);
   const [bestPage, setBestPage] = useState(0);
   const newPages = useMemo(() => {
     const all = productsIn("new");
     const pages = [];
-    for (let i = 0; i < all.length; i += 2) pages.push(all.slice(i, i + 2));
+    for (let i = 0; i < all.length; i += 1) pages.push(all.slice(i, i + 1));
     return pages;
   }, []);
   const [newPage, setNewPage] = useState(0);
+
+  // Product cards: har 3 second me next page (user drag kare to ruko, loop me)
+  useEffect(() => {
+    const id = setInterval(() => {
+      const w = Dimensions.get("window").width;
+      if (bestPages.length > 1 && !bestTouch.current) {
+        bestIndex.current = (bestIndex.current + 1) % bestPages.length;
+        bestRef.current?.scrollToOffset({
+          offset: bestIndex.current * w,
+          animated: true,
+        });
+        setBestPage(bestIndex.current);
+      }
+      if (newPages.length > 1 && !newTouch.current) {
+        newIndex.current = (newIndex.current + 1) % newPages.length;
+        newRef.current?.scrollToOffset({
+          offset: newIndex.current * w,
+          animated: true,
+        });
+        setNewPage(newIndex.current);
+      }
+    }, 3000);
+    return () => clearInterval(id);
+  }, [bestPages.length, newPages.length]);
 
   const goCollection = (screen, title) =>
     navigation?.navigate?.(screen, { title });
@@ -244,40 +284,23 @@ export default function StoreScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
+      <DreamHeader style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity
-            hitSlop={12}
-            onPress={() => navigation?.goBack?.()}
-            style={styles.iconBtn}
-          >
-            <Text style={styles.headerIcon}>←</Text>
-          </TouchableOpacity>
-          <AppLogo size={30} />
+          <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+            <BackGlyph />
+          </HeaderIconBtn>
+          <AppLogo size={38} />
           <Text style={styles.headerTitle}>Store</Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
-            onPress={() => setSearchOpen(true)}
-          >
-            <Text style={styles.headerIcon}>⌕</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
-            onPress={() => navigation?.navigate?.("Cart")}
-          >
-            <Text style={styles.headerIcon}>🛍</Text>
-            {count > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{count}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <HeaderIconBtn onPress={() => setSearchOpen(true)} label="Search">
+            <SearchGlyph />
+          </HeaderIconBtn>
+          <HeaderIconBtn onPress={() => navigation?.navigate?.("Cart")} label="Cart" badge={count}>
+            <BagGlyph />
+          </HeaderIconBtn>
         </View>
-      </View>
+      </DreamHeader>
 
       <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
         <ScrollView
@@ -286,12 +309,12 @@ export default function StoreScreen({ navigation }) {
           contentContainerStyle={styles.pillsRow}
         >
           <TouchableOpacity
-            style={styles.pill}
+            style={[styles.pill, styles.pillMenu]}
             activeOpacity={0.8}
             onPress={() => setMenuVisible(true)}
           >
             <Text style={styles.pillMenuIcon}>☰</Text>
-            <Text style={styles.pillText}>Menu</Text>
+            <Text style={styles.pillMenuText}>Menu</Text>
           </TouchableOpacity>
           {CATEGORIES.map((c) => (
             <TouchableOpacity
@@ -313,6 +336,12 @@ export default function StoreScreen({ navigation }) {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           keyExtractor={(i) => i.id}
+          onScrollBeginDrag={() => {
+            bannerTouch.current = true;
+          }}
+          onScrollEndDrag={() => {
+            bannerTouch.current = false;
+          }}
           onMomentumScrollEnd={(e) => {
             const w = Dimensions.get("window").width - 32;
             const idx = Math.round(e.nativeEvent.contentOffset.x / w);
@@ -390,19 +419,28 @@ export default function StoreScreen({ navigation }) {
           </TouchableOpacity>
         </View>
         <FlatList
+          ref={bestRef}
           data={bestPages}
           keyExtractor={(_, i) => `best-page-${i}`}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
+          onScrollBeginDrag={() => {
+            bestTouch.current = true;
+          }}
+          onScrollEndDrag={() => {
+            bestTouch.current = false;
+          }}
           onMomentumScrollEnd={(e) => {
             const w = Dimensions.get("window").width;
-            setBestPage(Math.round(e.nativeEvent.contentOffset.x / w));
+            const idx = Math.round(e.nativeEvent.contentOffset.x / w);
+            bestIndex.current = idx;
+            setBestPage(idx);
           }}
           renderItem={({ item: pair }) => (
-            <View style={styles.newPage}>
+            <View style={styles.singlePage}>
               {pair.map((p) => (
-                <View key={p.id} style={styles.newCard}>
+                <View key={p.id} style={styles.singleCard}>
                   <ProductCard item={p} compact onPress={setSelected} />
                 </View>
               ))}
@@ -428,19 +466,28 @@ export default function StoreScreen({ navigation }) {
           </TouchableOpacity>
         </View>
         <FlatList
+          ref={newRef}
           data={newPages}
           keyExtractor={(_, i) => `new-page-${i}`}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
+          onScrollBeginDrag={() => {
+            newTouch.current = true;
+          }}
+          onScrollEndDrag={() => {
+            newTouch.current = false;
+          }}
           onMomentumScrollEnd={(e) => {
             const w = Dimensions.get("window").width;
-            setNewPage(Math.round(e.nativeEvent.contentOffset.x / w));
+            const idx = Math.round(e.nativeEvent.contentOffset.x / w);
+            newIndex.current = idx;
+            setNewPage(idx);
           }}
           renderItem={({ item: pair }) => (
-            <View style={styles.newPage}>
+            <View style={styles.singlePage}>
               {pair.map((p) => (
-                <View key={p.id} style={styles.newCard}>
+                <View key={p.id} style={styles.singleCard}>
                   <ProductCard item={p} compact onPress={setSelected} />
                 </View>
               ))}
@@ -525,28 +572,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  iconBtn: {
-    padding: 6,
-  },
-  headerIcon: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+    gap: 6,
   },
   logoWrap: {
     backgroundColor: "#fff",
@@ -584,7 +630,7 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F5F6FA",
   },
   pillsRow: {
     flexDirection: "row",
@@ -595,7 +641,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#111",
+    borderColor: "#E5E5E5",
     borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 9,
@@ -605,6 +651,16 @@ const styles = StyleSheet.create({
   pillMenuIcon: {
     fontSize: 16,
     marginRight: 6,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  pillMenu: {
+    backgroundColor: RED,
+    borderColor: RED,
+  },
+  pillMenuText: {
+    fontSize: 15,
+    color: "#fff",
     fontWeight: "700",
   },
   pillEmoji: {
@@ -628,6 +684,8 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 86,
     position: "relative",
+    borderWidth: 1.5,
+    borderColor: "#FFC42E",
   },
   heroTop: {
     color: "#E8E8E8",
@@ -670,14 +728,21 @@ const styles = StyleSheet.create({
   heroCta: {
     position: "absolute",
     bottom: 28,
-    backgroundColor: TEAL,
+    backgroundColor: "#fff",
     borderRadius: 8,
     paddingHorizontal: 26,
     paddingVertical: 10,
+    borderWidth: 1.5,
+    borderColor: "#FFC42E",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
   },
   heroCtaText: {
-    color: "#fff",
-    fontWeight: "700",
+    color: RED,
+    fontWeight: "800",
     fontSize: 14,
   },
   dotsRow: {
@@ -691,13 +756,13 @@ const styles = StyleSheet.create({
     height: 5,
     borderRadius: 3,
     backgroundColor: "#BDBDBD",
-    marginHorizontal: 5,
+    marginHorizontal: 4,
   },
   dotActive: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#BDBDBD",
+    width: 24,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: RED,
   },
   greetWrap: {
     alignItems: "center",
@@ -722,12 +787,21 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   offerCard: {
-    backgroundColor: "#F1F1F1",
+    backgroundColor: "#171A4B",
     borderRadius: 16,
     marginHorizontal: 16,
     marginTop: 26,
     paddingHorizontal: 16,
     paddingVertical: 18,
+    borderWidth: 1.5,
+    borderColor: "#FFC42E",
+    borderBottomWidth: 4,
+    borderBottomColor: RED,
+    shadowColor: RED,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   offerRow: {
     flexDirection: "row",
@@ -745,7 +819,7 @@ const styles = StyleSheet.create({
   offerText: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#111",
+    color: "#FFC42E",
   },
   offerRight: {
     flexDirection: "row",
@@ -753,18 +827,18 @@ const styles = StyleSheet.create({
   },
   offerCount: {
     fontSize: 16,
-    color: "#8A8A8A",
+    color: "rgba(255,255,255,0.7)",
     marginRight: 10,
   },
   offerArrow: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#111",
+    color: "#FFC42E",
   },
   offerDetail: {
     marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
+    borderTopColor: "rgba(255,255,255,0.2)",
     paddingTop: 12,
     flexDirection: "row",
     alignItems: "center",
@@ -773,11 +847,11 @@ const styles = StyleSheet.create({
   offerDetailText: {
     flex: 1,
     fontSize: 13,
-    color: "#444",
+    color: "rgba(255,255,255,0.85)",
     marginRight: 10,
   },
   offerBtn: {
-    backgroundColor: "#111",
+    backgroundColor: "#FFC42E",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -786,8 +860,8 @@ const styles = StyleSheet.create({
     backgroundColor: TEAL,
   },
   offerBtnText: {
-    color: "#fff",
-    fontWeight: "700",
+    color: "#171A4B",
+    fontWeight: "800",
   },
   sectionHead: {
     flexDirection: "row",
@@ -801,11 +875,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "800",
     color: "#111",
+    borderLeftWidth: 4,
+    borderLeftColor: RED,
+    paddingLeft: 8,
   },
   sectionLink: {
     fontSize: 15,
-    color: TEAL,
-    fontWeight: "500",
+    color: RED,
+    fontWeight: "700",
   },
   grid: {
     flexDirection: "row",
@@ -821,6 +898,13 @@ const styles = StyleSheet.create({
   },
   newCard: {
     width: (Dimensions.get("window").width - 32 - 12) / 2,
+  },
+  singlePage: {
+    width: Dimensions.get("window").width,
+    paddingHorizontal: 16,
+  },
+  singleCard: {
+    width: Dimensions.get("window").width - 32,
   },
   searchDim: {
     flex: 1,

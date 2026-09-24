@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import ProPill from "../../components/ProPill";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
+const RED = "#E01A22";
 const RED_DARK = "#A31212";
-const TEAL = "#1FA89B";
+const TEAL = "#00A651";
 const DARK = "#101010";
 const DARK_CARD = "#161616";
 
@@ -56,23 +59,15 @@ export default function AnalyseScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={RED} />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} style={styles.iconBtn}>
-          <Text style={styles.headerIcon}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation.goBack()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {name}
         </Text>
-        <TouchableOpacity hitSlop={10} style={styles.iconBtn}>
-          <Text style={styles.headerIcon}>⌕</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={10} style={styles.iconBtn}>
-          <Text style={styles.headerIcon}>⧩</Text>
-          <View style={styles.countBadge}>
-            <Text style={styles.countText}>1</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+        <ProPill onPress={goPro} />
+      </DreamHeader>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         {/* Profile strip */}
@@ -139,11 +134,17 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   iconBtn: {
     padding: 4,

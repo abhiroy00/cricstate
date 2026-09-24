@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const TEAL = "#199A8E";
+const TEAL = "#00A651";
+const RED = "#E01A22";
+const NAVY = "#171A4B";
+const GOLD = "#FFC42E";
 
 const PREVIEW_SUFFIX = "Explore everything PRO";
 const FULL_EXTRA =
@@ -37,28 +40,37 @@ export default function ProBanner({ until = "20-Oct-2026", onViewBenefits, onRea
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#F1F1F1",
+    backgroundColor: NAVY,
     borderRadius: 18,
     marginHorizontal: 16,
     marginTop: 12,
     paddingHorizontal: 18,
     paddingVertical: 16,
+    borderWidth: 1.5,
+    borderColor: GOLD,
+    borderBottomWidth: 4,
+    borderBottomColor: RED,
+    shadowColor: RED,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   title: {
     fontSize: 17,
     fontWeight: "700",
-    color: "#111",
+    color: "#fff",
   },
   proPill: {
-    backgroundColor: TEAL,
-    color: "#fff",
+    backgroundColor: GOLD,
+    color: NAVY,
     fontSize: 13,
     fontWeight: "800",
     borderRadius: 10,
   },
   body: {
     fontSize: 13,
-    color: "#333",
+    color: "rgba(255,255,255,0.85)",
     lineHeight: 19,
     marginTop: 8,
   },
@@ -68,12 +80,12 @@ const styles = StyleSheet.create({
   },
   readMore: {
     fontSize: 14,
-    color: "#999",
+    color: GOLD,
   },
   benefits: {
     fontSize: 16,
-    color: TEAL,
-    fontWeight: "500",
+    color: GOLD,
+    fontWeight: "700",
     marginTop: 6,
   },
 });

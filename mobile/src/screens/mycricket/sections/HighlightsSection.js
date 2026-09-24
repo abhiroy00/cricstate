@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const TEAL = "#199A8E";
+const TEAL = "#00A651";
 const PILL_BG = "#E9E7E7";
 
 const FILTERS = [

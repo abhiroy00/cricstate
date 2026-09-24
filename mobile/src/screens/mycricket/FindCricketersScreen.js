@@ -8,9 +8,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#1A9A8E";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 
 const TABS = [
   { key: "CONTACTS", label: "Contacts" },
@@ -120,17 +122,17 @@ export default function FindCricketersScreen({ navigation }) {
       <StatusBar barStyle="light-content" backgroundColor={RED} />
 
       {/* Red header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation.goBack()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           Cricketers from your contacts
         </Text>
         <TouchableOpacity hitSlop={12} style={styles.menuBtn}>
           <Text style={styles.menuDots}>⋮</Text>
         </TouchableOpacity>
-      </View>
+      </DreamHeader>
 
       {/* Filter pills */}
       <View style={styles.tabsWrap}>
@@ -182,11 +184,17 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 14,
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   backBtn: {
     paddingHorizontal: 8,

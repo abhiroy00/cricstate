@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    backgroundColor: TEAL,
+    backgroundColor: RED,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderBottomRightRadius: 14,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: "#fff",
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "800",
   },
   heart: {
     position: "absolute",

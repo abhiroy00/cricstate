@@ -9,23 +9,52 @@ import { CartProvider, useCart } from "../screens/store/StoreCartContext";
 import MyCricketStack from "./MyCricketStack";
 import CommunityStack from "./CommunityStack";
 import LookingStack from "./LookingStack";
+import {
+  CommunityGlyph,
+  CricketGlyph,
+  HomeGlyph,
+  SearchTabGlyph,
+  StoreTabGlyph,
+} from "../components/TabGlyphs";
 
 const Tab = createBottomTabNavigator();
 
-const RED = "#EA580C";
+const RED = "#E01A22";
+const RED_DARK = "#A60E14";
+const GOLD = "#FFC42E";
+const GREY = "#9AA0AE";
 
-const TAB_ICONS = {
-  Home: "🏠",
-  Looking: "🔍",
-  "My Cricket": "🏏",
-  Community: "👥",
-  Store: "🛒",
-};
+function GlyphFor({ name, focused }) {
+  const color = focused ? RED : GREY;
+  switch (name) {
+    case "Home":
+      return <HomeGlyph color={color} />;
+    case "Looking":
+      return <SearchTabGlyph color={color} active={focused} />;
+    case "Community":
+      return <CommunityGlyph color={color} />;
+    case "Store":
+      return <StoreTabGlyph color={color} active={focused} />;
+    default:
+      return <CricketGlyph color={color} />;
+  }
+}
 
-function TabIcon({ emoji, focused }) {
+function TabIcon({ name, focused }) {
   return (
     <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Text style={[styles.icon, !focused && styles.iconDim]}>{emoji}</Text>
+      <GlyphFor name={name} focused={focused} />
+    </View>
+  );
+}
+
+// Dream11-jaisa center raised button (My Cricket)
+function CenterTabIcon({ focused }) {
+  return (
+    <View style={styles.centerWrap}>
+      <View style={[styles.centerBtn, focused && styles.centerBtnActive]}>
+        <CricketGlyph color={RED} onRed />
+      </View>
     </View>
   );
 }
@@ -34,9 +63,7 @@ function StoreTabIcon({ focused }) {
   const { count } = useCart();
   return (
     <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Text style={[styles.icon, !focused && styles.iconDim]}>
-        {TAB_ICONS.Store}
-      </Text>
+      <GlyphFor name="Store" focused={focused} />
       {count > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count > 99 ? "99+" : count}</Text>
@@ -60,12 +87,12 @@ export default function MainTabs() {
             { height: 68 + insets.bottom, paddingBottom: 10 + insets.bottom },
           ],
           tabBarLabelStyle: styles.label,
-          tabBarIcon: ({ focused }) =>
-            route.name === "Store" ? (
-              <StoreTabIcon focused={focused} />
-            ) : (
-              <TabIcon emoji={TAB_ICONS[route.name] || "•"} focused={focused} />
-            ),
+          tabBarIcon: ({ focused }) => {
+            if (route.name === "Store") return <StoreTabIcon focused={focused} />;
+            if (route.name === "My Cricket")
+              return <CenterTabIcon focused={focused} />;
+            return <TabIcon name={route.name} focused={focused} />;
+          },
         })}
       >
         <Tab.Screen name="Home" component={HomeStack} />
@@ -81,18 +108,18 @@ export default function MainTabs() {
 const styles = StyleSheet.create({
   bar: {
     backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#EEE",
+    borderTopWidth: 2,
+    borderTopColor: RED,
     paddingTop: 8,
     elevation: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: -2 },
+    shadowColor: RED,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -3 },
   },
   label: {
     fontSize: 11,
-    fontWeight: "600",
+    fontWeight: "700",
     marginTop: 2,
   },
   iconWrap: {
@@ -103,14 +130,36 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   iconWrapActive: {
-    backgroundColor: "#FFF1E6",
+    backgroundColor: "#FDE7E8",
+    borderWidth: 1,
+    borderColor: "#F8C4C6",
   },
-  icon: {
-    fontSize: 23,
+  // Center raised Dream11-style button
+  centerWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: 56,
+    height: 40,
   },
-  iconDim: {
-    fontSize: 22,
-    opacity: 0.9,
+  centerBtn: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: RED,
+    borderWidth: 2.5,
+    borderColor: GOLD,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: -26,
+    shadowColor: RED_DARK,
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  centerBtnActive: {
+    backgroundColor: RED_DARK,
+    transform: [{ scale: 1.06 }],
   },
   badge: {
     position: "absolute",

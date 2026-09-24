@@ -12,6 +12,8 @@ import { COLLECTIONS, productsIn, RED, TEAL } from "../../data/storeData";
 import ProductCard from "./ProductCard";
 import ProductDetailModal from "./ProductDetailModal";
 import { useCart } from "./StoreCartContext";
+import { BackGlyph, BagGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
+import DreamHeader from "../../components/DreamHeader";
 
 const SORTS = ["Popular", "Price ↑", "Price ↓", "Discount"];
 
@@ -43,34 +45,21 @@ export default function CollectionScreen({ navigation, route, collectionKey }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
+      <DreamHeader style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
-            onPress={() => navigation?.goBack?.()}
-          >
-            <Text style={styles.headerIcon}>←</Text>
-          </TouchableOpacity>
+          <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+            <BackGlyph />
+          </HeaderIconBtn>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {title}
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
-            onPress={() => navigation?.navigate?.("Cart")}
-          >
-            <Text style={styles.headerIcon}>🛍</Text>
-            {count > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{count}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <HeaderIconBtn onPress={() => navigation?.navigate?.("Cart")} label="Cart" badge={count}>
+            <BagGlyph />
+          </HeaderIconBtn>
         </View>
-      </View>
+      </DreamHeader>
 
       <FlatList
         data={items}
@@ -127,15 +116,15 @@ export default function CollectionScreen({ navigation, route, collectionKey }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F5F6FA",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 13,
   },
   headerLeft: {
     flexDirection: "row",
@@ -145,14 +134,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  iconBtn: {
-    padding: 6,
-  },
-  headerIcon: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+    gap: 6,
   },
   headerTitle: {
     color: "#fff",
@@ -192,7 +174,8 @@ const styles = StyleSheet.create({
   },
   countLine: {
     fontSize: 13,
-    color: "#999",
+    color: RED,
+    fontWeight: "700",
     marginTop: 4,
   },
   sortRow: {
@@ -206,10 +189,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     marginRight: 8,
+    backgroundColor: "#fff",
   },
   sortActive: {
-    backgroundColor: "#111",
-    borderColor: "#111",
+    backgroundColor: RED,
+    borderColor: RED,
   },
   sortText: {
     fontSize: 13,

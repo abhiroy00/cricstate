@@ -1,7 +1,9 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
+const RED = "#E01A22";
 
 const BODIES = {
   "CricHeroes Awards":
@@ -42,19 +44,15 @@ export default function InfoScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.backBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {title}
         </Text>
         <View style={{ width: 36 }} />
-      </View>
+      </DreamHeader>
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.text}>{body}</Text>
       </ScrollView>
@@ -68,12 +66,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   backBtn: {
     padding: 6,

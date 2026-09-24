@@ -15,8 +15,8 @@ import { extractErrorMessage } from "../../../services/api";
 import { createPlayer, getMyPlayer, getPlayerStats } from "../../../services/playerService";
 import { colors } from "../../../utils/theme";
 
-const RED = "#EA580C";
-const TEAL = "#199A8E";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const PILL_BG = "#E9E7E7";
 
 const FILTERS = [

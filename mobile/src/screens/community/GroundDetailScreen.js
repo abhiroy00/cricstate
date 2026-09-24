@@ -12,9 +12,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import {
+  BackGlyph,
+  HeaderIconBtn,
+  ShareGlyph,
+} from "../../components/HeaderIcon";
 
-const TEAL = "#0E9E9B";
-const RED = "#D71920";
+const TEAL = "#00A651";
+const RED = "#E01A22";
 const STAR = "#F5A623";
 const PAGE = "#F5F5F5";
 
@@ -137,17 +143,17 @@ export default function GroundDetailScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity hitSlop={12} style={styles.backBtn} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {ground.name}
         </Text>
-        <TouchableOpacity hitSlop={12} style={styles.backBtn} onPress={shareGround}>
-          <Text style={styles.shareIcon}>↗</Text>
-        </TouchableOpacity>
-      </View>
+<HeaderIconBtn onPress={shareGround} label="Share">
+  <ShareGlyph />
+</HeaderIconBtn>
+      </DreamHeader>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -419,11 +425,17 @@ export default function GroundDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#fff" },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   backBtn: { padding: 6 },
   backArrow: { color: "#fff", fontSize: 26, fontWeight: "700" },

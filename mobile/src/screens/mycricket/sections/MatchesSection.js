@@ -14,8 +14,8 @@ import { extractErrorMessage } from "../../../services/api";
 import { listMatches } from "../../../services/matchService";
 import { AllMatchesBody } from "../AllMatchesScreen";
 
-const RED = "#EA580C";
-const TEAL = "#199A8E";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const PILL_BG = "#E9E7E7";
 
 const FILTERS = [
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   result: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#084d37",
+    color: "#A60E14",
     marginTop: 6,
   },
   langRow: {

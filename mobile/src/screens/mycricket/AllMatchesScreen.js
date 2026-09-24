@@ -9,9 +9,11 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#199A8E";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 
 const TABS = [
   { key: "interest", label: "Your Interest", title: "Matches of your interest" },
@@ -297,17 +299,17 @@ export default function AllMatchesScreen({ navigation, route }) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={RED} />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation.goBack()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {activeTitle}
         </Text>
         <TouchableOpacity hitSlop={10} style={styles.headerRight}>
           <Text style={styles.headerRightIcon}>⧉</Text>
         </TouchableOpacity>
-      </View>
+      </DreamHeader>
       <View style={styles.screenBody}>
         <AllMatchesBody navigation={navigation} tab={tab} onTabChange={setTab} />
       </View>
@@ -323,11 +325,17 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   backBtn: {
     padding: 4,

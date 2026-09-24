@@ -1,8 +1,10 @@
 import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 
-const RED = "#EA580C";
-const TEAL = "#199A8E";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const GREY = "#9AA0A0";
 
 function ChatIllustration() {
@@ -27,17 +29,17 @@ export default function DirectMessagesScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={RED} />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} style={styles.iconBtn}>
-          <Text style={styles.headerIcon}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation.goBack()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle} numberOfLines={1}>
           Direct messages (dm)
         </Text>
         <TouchableOpacity hitSlop={10} style={styles.iconBtn}>
           <Text style={styles.headerPlus}>+</Text>
         </TouchableOpacity>
-      </View>
+      </DreamHeader>
 
       <View style={styles.body}>
         <ChatIllustration />
@@ -59,11 +61,17 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   iconBtn: {
     padding: 4,

@@ -4,6 +4,7 @@ import {
   Modal,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -11,9 +12,18 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import DreamHeader from "../../components/DreamHeader";
+import {
+  BackGlyph,
+  FilterGlyph,
+  HeaderIconBtn,
+  SearchGlyph,
+  ShareGlyph,
+} from "../../components/HeaderIcon";
+import SearchOverlay from "../../components/SearchOverlay";
 
-const RED = "#EA580C";
-const TEAL = "#0E9E9B";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const INK = "#1A1A1A";
 const GREY = "#8A8A8A";
 
@@ -138,6 +148,7 @@ export default function LeaderboardScreen({
 }) {
   const [infoOpen, setInfoOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [regOpen, setRegOpen] = useState(false);
   const [regName, setRegName] = useState("");
   const [regPhone, setRegPhone] = useState("");
@@ -158,29 +169,43 @@ export default function LeaderboardScreen({
     setRegPhone("");
   };
 
+  const shareBoard = () => {
+    Share.share({
+      message: `Top ${title} of ${city} on CricState — ${visible.length} ranked and counting!`,
+    }).catch(() => {});
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.backBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.backArrow}>‹</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle}>{title}</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity hitSlop={12} style={styles.headerBtn}>
-            <SearchIcon />
-          </TouchableOpacity>
-          <TouchableOpacity hitSlop={12} style={styles.headerBtn}>
-            <ShareIcon />
-          </TouchableOpacity>
-          <TouchableOpacity hitSlop={12} style={styles.headerBtn}>
-            <FilterIcon count={4} />
-          </TouchableOpacity>
+          <HeaderIconBtn onPress={() => setSearchOpen(true)} label="Search">
+            <SearchGlyph />
+          </HeaderIconBtn>
+          <HeaderIconBtn onPress={shareBoard} label="Share">
+            <ShareGlyph />
+          </HeaderIconBtn>
+          <HeaderIconBtn
+            onPress={() => setExpanded((e) => !e)}
+            label="Filter"
+            badge={expanded ? 0 : 4}
+          >
+            <FilterGlyph active={!expanded} />
+          </HeaderIconBtn>
         </View>
-      </View>
+      </DreamHeader>
+      <SearchOverlay
+        visible={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSeeMatch={() => {
+          setSearchOpen(false);
+          navigation?.navigate?.("My Cricket");
+        }}
+      />
 
       <View style={styles.subRow}>
         <Text style={styles.subTitle}>
@@ -369,11 +394,17 @@ const styles = StyleSheet.create({
 
   /* Red header */
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 6,
-    paddingVertical: 8,
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingBottom: 15,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   backBtn: {
     padding: 6,
@@ -389,7 +420,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#fff",
     fontSize: 20,
-    fontWeight: "500",
+    fontWeight: "700",
     marginLeft: 4,
   },
   headerRight: {

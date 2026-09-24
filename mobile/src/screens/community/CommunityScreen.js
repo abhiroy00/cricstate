@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  Animated,
+  Easing,
   FlatList,
   Modal,
   Pressable,
@@ -14,76 +16,23 @@ import { DrawerActions } from "@react-navigation/native";
 import FilterSheet from "../../components/FilterSheet";
 import SearchOverlay from "../../components/SearchOverlay";
 import AppLogoImage from "../../components/AppLogo";
+import DreamHeader from "../../components/DreamHeader";
+import ProPill from "../../components/ProPill";
+import {
+  ChatGlyph,
+  FilterGlyph,
+  HeaderIconBtn,
+  MenuGlyph,
+  SearchGlyph,
+} from "../../components/HeaderIcon";
 
 // Screenshot se nikale exact colours
-const RED = "#EA580C";
-const TEAL = "#0E9E9B";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 const INK = "#111111";
 const CARD_BORDER = "#EDEDED";
 
 const CITIES = ["Delhi", "Mumbai", "Bengaluru", "Chennai", "Kolkata", "Hyderabad"];
-
-/* ---------------- Header white line-icons (screenshot jaisa) ---------------- */
-
-function MenuIcon() {
-  return (
-    <View style={{ width: 24, gap: 5 }}>
-      <View style={styles.hBar} />
-      <View style={styles.hBar} />
-      <View style={styles.hBar} />
-    </View>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <View style={{ width: 26, height: 26 }}>
-      <View style={styles.searchCircle} />
-      <View style={styles.searchHandle} />
-    </View>
-  );
-}
-
-function InboxIcon() {
-  return (
-    <View style={{ width: 28, height: 26, alignItems: "center" }}>
-      <View style={styles.chatBox}>
-        <View style={styles.chatLine} />
-        <View style={[styles.chatLine, { width: 10 }]} />
-      </View>
-      <View style={styles.chatTail} />
-    </View>
-  );
-}
-
-function FilterIcon({ count }) {
-  return (
-    <View style={{ width: 28, height: 26 }}>
-      <View style={styles.funnelTop} />
-      <View style={styles.funnelV}>
-        <View style={[styles.funnelArm, { transform: [{ rotate: "38deg" }] }]} />
-        <View style={[styles.funnelArm, { transform: [{ rotate: "-38deg" }] }]} />
-      </View>
-      <View style={styles.funnelStem} />
-      {count > 0 && (
-        <View style={styles.filterBadge}>
-          <Text style={styles.filterBadgeText}>{count}</Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-function AppLogo() {
-  return (
-    <View style={styles.logoRow}>
-      <Text style={styles.logoTen}>10</Text>
-      <View style={styles.logoBall}>
-        <View style={styles.logoSeam} />
-      </View>
-    </View>
-  );
-}
 
 /* ---------------- Grid black line-icons (screenshot jaisa) ---------------- */
 
@@ -251,43 +200,147 @@ const TILES = [
 // Organisers ke neeche (middle column) rahe, right edge par na khiske.
 const GRID = [...TILES, { key: "blank", blank: true }];
 
-function CommunityHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterCount }) {
+function CommunityHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterCount, hasUnread }) {
   return (
-    <View style={styles.header}>
+    <DreamHeader style={styles.header}>
       <View style={styles.headerLeft}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
-          <Text style={styles.headerIcon}>☰</Text>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onMenu} label="Menu">
+          <MenuGlyph />
+        </HeaderIconBtn>
         <AppLogoImage />
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
-          <Text style={styles.proBtnText}>PRO @ ₹199</Text>
-        </TouchableOpacity>
+        <ProPill onPress={onPro} />
       </View>
       <View style={styles.headerRight}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onSearch}>
-          <Text style={styles.searchIcon}>⌕</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMessage}>
-          <Text style={styles.headerIcon}>💬</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onFilter}>
-          <View>
-            <Text style={styles.headerIcon}>⧩</Text>
-            {filterCount > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{filterCount}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onSearch} label="Search">
+          <SearchGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onMessage} label="Messages" dot={hasUnread}>
+          <ChatGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onFilter} label="Filter" badge={filterCount}>
+          <FilterGlyph active={filterCount > 0} />
+        </HeaderIconBtn>
       </View>
-    </View>
+    </DreamHeader>
+  );
+}
+
+/* Pulsing red dot — Streamers tile pe LIVE wali feel */
+function LiveDot() {
+  const p = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(p, {
+          toValue: 1,
+          duration: 700,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(p, {
+          toValue: 0,
+          duration: 700,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [p]);
+  return (
+    <Animated.View
+      style={[
+        styles.liveDot,
+        {
+          opacity: p.interpolate({ inputRange: [0, 1], outputRange: [1, 0.25] }),
+          transform: [{ scale: p.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
+        },
+      ]}
+    />
+  );
+}
+
+/* Tile — staggered entry (fade + rise) + dabane pe bounce */
+function AnimatedTile({ index, onPress, children }) {
+  const enter = useRef(new Animated.Value(0)).current;
+  const press = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const t = Animated.timing(enter, {
+      toValue: 1,
+      duration: 450,
+      delay: 80 + index * 70,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    t.start();
+    return () => t.stop();
+  }, [enter, index]);
+
+  const pressIn = () =>
+    Animated.spring(press, {
+      toValue: 0.92,
+      friction: 6,
+      tension: 320,
+      useNativeDriver: true,
+    }).start();
+  const pressOut = () =>
+    Animated.spring(press, {
+      toValue: 1,
+      friction: 6,
+      tension: 320,
+      useNativeDriver: true,
+    }).start();
+
+  return (
+    <Pressable onPress={onPress} onPressIn={pressIn} onPressOut={pressOut} style={styles.tilePress}>
+      <Animated.View
+        style={[
+          styles.tile,
+          {
+            opacity: enter,
+            transform: [
+              { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [26, 0] }) },
+              { scale: press },
+            ],
+          },
+        ]}
+      >
+        {children}
+      </Animated.View>
+    </Pressable>
   );
 }
 
 export default function CommunityScreen({ navigation }) {
   const [city, setCity] = useState("Delhi");
   const [cityOpen, setCityOpen] = useState(false);
+  const titleShine = useRef(new Animated.Value(0)).current;
+
+  // Title pe gold shimmer sweep — har ~4 sec me ek chamak
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(1200),
+        Animated.timing(titleShine, {
+          toValue: 1,
+          duration: 1200,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(titleShine, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1800),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [titleShine]);
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterCount, setFilterCount] = useState(0);
@@ -349,6 +402,22 @@ export default function CommunityScreen({ navigation }) {
         <Text style={styles.title}>
           Cricket community in <Text style={styles.city} onPress={() => setCityOpen(true)}>{city}</Text>
         </Text>
+        <Animated.View
+          style={[
+            styles.titleShine,
+            {
+              transform: [
+                {
+                  translateX: titleShine.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-90, 420],
+                  }),
+                },
+                { rotate: "15deg" },
+              ],
+            },
+          ]}
+        />
       </View>
 
       <FlatList
@@ -358,20 +427,22 @@ export default function CommunityScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           if (item.blank) return <View style={styles.tileBlank} />;
           const Icon = item.Icon;
           return (
-            <TouchableOpacity
-              style={styles.tile}
-              activeOpacity={0.85}
-              onPress={() => openTile(item)}
-            >
+            <AnimatedTile key={item.key} index={index} onPress={() => openTile(item)}>
+              {item.key === "streamers" && (
+                <View style={styles.liveBadge}>
+                  <LiveDot />
+                  <Text style={styles.liveBadgeText}>LIVE</Text>
+                </View>
+              )}
               <Icon />
               <Text style={styles.tileLabel} numberOfLines={2}>
                 {item.label}
               </Text>
-            </TouchableOpacity>
+            </AnimatedTile>
           );
         }}
       />
@@ -435,14 +506,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
-  /* Header — screenshot: solid red, white icons */
+  /* Header — Dream11-style dynamic red gradient (DreamHeader) + gold strip */
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 10,
     paddingVertical: 10,
+    paddingBottom: 13,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   headerLeft: {
     flexDirection: "row",
@@ -452,19 +528,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  headerBtn: {
-    padding: 8,
-  },
-  headerIcon: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  searchIcon: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+    gap: 6,
   },
   logoWrap: {
     marginLeft: 6,
@@ -534,6 +598,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 16,
     paddingBottom: 14,
+    overflow: "hidden",
+  },
+  titleShine: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: 70,
+    backgroundColor: "rgba(255,196,46,0.35)",
   },
   title: {
     fontSize: 20,
@@ -579,6 +652,34 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 21,
     height: 42,
+  },
+  tilePress: {
+    flex: 1,
+  },
+  liveBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E63329",
+    borderRadius: 9,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    zIndex: 2,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: "#fff",
+    marginRight: 4,
+  },
+  liveBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1,
   },
   tileBlank: {
     flex: 1,

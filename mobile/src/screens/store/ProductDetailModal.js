@@ -3,6 +3,7 @@ import {
   Modal,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,11 +15,17 @@ export default function ProductDetailModal({ product, visible, onClose, onBuyNow
   const { add, toggleWish, isWished } = useCart();
   const [size, setSize] = useState(null);
   const [qty, setQty] = useState(1);
+  const [pin, setPin] = useState("");
+  const [pinMsg, setPinMsg] = useState("");
+  const [pinOk, setPinOk] = useState(false);
 
   useEffect(() => {
     if (visible && product) {
       setSize(product.sizes[0]);
       setQty(1);
+      setPin("");
+      setPinMsg("");
+      setPinOk(false);
     }
   }, [visible, product]);
 
@@ -28,6 +35,20 @@ export default function ProductDetailModal({ product, visible, onClose, onBuyNow
   const handleAdd = () => {
     add(product, size || product.sizes[0], qty);
     onClose?.();
+  };
+
+  const checkPin = () => {
+    if (/^\d{6}$/.test(pin.trim())) {
+      const eta = new Date(Date.now() + 4 * 864e5).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+      });
+      setPinOk(true);
+      setPinMsg(`Delivery by ${eta} • COD available`);
+    } else {
+      setPinOk(false);
+      setPinMsg("Enter a valid 6-digit pincode.");
+    }
   };
 
   return (
@@ -80,6 +101,35 @@ export default function ProductDetailModal({ product, visible, onClose, onBuyNow
               <Text style={styles.off}>{offPct(product)}</Text>
             </View>
             <Text style={styles.taxNote}>Inclusive of all taxes</Text>
+
+            <Text style={styles.label}>Delivery</Text>
+            <View style={styles.pinRow}>
+              <TextInput
+                style={styles.pinInput}
+                placeholder="Pincode"
+                placeholderTextColor="#999"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={pin}
+                onChangeText={(v) => {
+                  setPin(v);
+                  setPinMsg("");
+                }}
+              />
+              <TouchableOpacity
+                style={styles.pinBtn}
+                activeOpacity={0.85}
+                onPress={checkPin}
+              >
+                <Text style={styles.pinBtnText}>Check</Text>
+              </TouchableOpacity>
+            </View>
+            {pinMsg ? (
+              <Text style={[styles.pinMsg, pinOk && styles.pinMsgOk]}>
+                {pinOk ? "✓ " : ""}
+                {pinMsg}
+              </Text>
+            ) : null}
 
             <Text style={styles.label}>
               Size{product.sizes.length > 1 ? " — " + size : ""}
@@ -174,7 +224,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    backgroundColor: TEAL,
+    backgroundColor: RED,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderBottomRightRadius: 16,
@@ -182,7 +232,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   close: {
     position: "absolute",
@@ -293,8 +343,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sizeActive: {
-    borderColor: "#111",
-    backgroundColor: "#111",
+    borderColor: RED,
+    backgroundColor: RED,
   },
   sizeText: {
     fontSize: 14,
@@ -303,6 +353,46 @@ const styles = StyleSheet.create({
   },
   sizeTextActive: {
     color: "#fff",
+  },
+  pinRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  pinInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#E2E2E2",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 14,
+    color: "#111",
+    backgroundColor: "#F8F8F8",
+    marginRight: 8,
+  },
+  pinBtn: {
+    backgroundColor: "#171A4B",
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "#FFC42E",
+  },
+  pinBtnText: {
+    color: "#FFC42E",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  pinMsg: {
+    fontSize: 13,
+    color: RED,
+    fontWeight: "600",
+    marginTop: 6,
+  },
+  pinMsgOk: {
+    color: TEAL,
+    fontWeight: "700",
   },
   foot: {
     flexDirection: "row",
@@ -334,15 +424,17 @@ const styles = StyleSheet.create({
   },
   addBtn: {
     flex: 1,
-    backgroundColor: "#111",
+    backgroundColor: "#171A4B",
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#FFC42E",
   },
   addText: {
-    color: "#fff",
+    color: "#FFC42E",
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "800",
   },
   buyBtn: {
     backgroundColor: RED,
@@ -350,6 +442,8 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     alignItems: "center",
     marginTop: 10,
+    borderWidth: 1.5,
+    borderColor: "#FFC42E",
   },
   buyText: {
     color: "#fff",

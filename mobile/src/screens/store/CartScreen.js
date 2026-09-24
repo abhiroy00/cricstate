@@ -3,6 +3,7 @@ import {
   FlatList,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -10,31 +11,45 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { formatINR, RED, TEAL } from "../../data/storeData";
 import { useCart } from "./StoreCartContext";
+import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
+import DreamHeader from "../../components/DreamHeader";
 
 const FREE_SHIP_ABOVE = 999;
 const SHIP_FEE = 49;
+const COUPON_CODE = "CRIC20";
+const COUPON_PCT = 0.2;
 
 export default function CartScreen({ navigation }) {
   const { lines, setQty, remove, subtotal, savings, clear } = useCart();
   const [placed, setPlaced] = useState(false);
+  const [coupon, setCoupon] = useState("");
+  const [couponOn, setCouponOn] = useState(false);
+  const [couponErr, setCouponErr] = useState("");
 
   const shipping = subtotal === 0 || subtotal >= FREE_SHIP_ABOVE ? 0 : SHIP_FEE;
-  const total = subtotal + shipping;
+  const discount = couponOn ? Math.round(subtotal * COUPON_PCT) : 0;
+  const total = subtotal - discount + shipping;
+
+  const applyCoupon = () => {
+    if (coupon.trim().toUpperCase() === COUPON_CODE) {
+      setCouponOn(true);
+      setCouponErr("");
+    } else {
+      setCouponOn(false);
+      setCouponErr("Invalid coupon. Try CRIC20.");
+    }
+  };
 
   if (placed) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            hitSlop={12}
-            style={styles.iconBtn}
-            onPress={() => navigation?.goBack?.()}
-          >
-            <Text style={styles.headerIcon}>←</Text>
-          </TouchableOpacity>
+        <DreamHeader style={styles.header}>
+          <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+            <BackGlyph />
+          </HeaderIconBtn>
           <Text style={styles.headerTitle}>Order confirmed</Text>
-          <View style={{ width: 36 }} />
-        </View>
+          <View style={{ width: 40 }} />
+        </DreamHeader>
         <View style={styles.success}>
           <Text style={styles.successEmoji}>🎉</Text>
           <Text style={styles.successTitle}>Order placed!</Text>
@@ -59,19 +74,15 @@ export default function CartScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          hitSlop={12}
-          style={styles.iconBtn}
-          onPress={() => navigation?.goBack?.()}
-        >
-          <Text style={styles.headerIcon}>←</Text>
-        </TouchableOpacity>
+      <DreamHeader style={styles.header}>
+        <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+          <BackGlyph />
+        </HeaderIconBtn>
         <Text style={styles.headerTitle}>
           My Cart{lines.length > 0 ? ` (${lines.length})` : ""}
         </Text>
-        <View style={{ width: 36 }} />
-      </View>
+        <View style={{ width: 40 }} />
+      </DreamHeader>
 
       {lines.length === 0 ? (
         <View style={styles.empty}>
@@ -141,10 +152,44 @@ export default function CartScreen({ navigation }) {
           />
 
           <View style={styles.summary}>
+            <View style={styles.couponRow}>
+              <TextInput
+                style={styles.couponInput}
+                placeholder={`Coupon code (try ${COUPON_CODE})`}
+                value={coupon}
+                onChangeText={(v) => {
+                  setCoupon(v);
+                  setCouponOn(false);
+                  setCouponErr("");
+                }}
+                autoCapitalize="characters"
+                placeholderTextColor="#999"
+              />
+              <TouchableOpacity
+                style={styles.couponBtn}
+                activeOpacity={0.85}
+                onPress={applyCoupon}
+              >
+                <Text style={styles.couponBtnText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+            {couponOn ? (
+              <Text style={styles.couponOk}>★ {COUPON_CODE} applied — 20% off!</Text>
+            ) : couponErr ? (
+              <Text style={styles.couponErr}>{couponErr}</Text>
+            ) : null}
             <View style={styles.sumRow}>
               <Text style={styles.sumLabel}>Subtotal</Text>
               <Text style={styles.sumVal}>{formatINR(subtotal)}</Text>
             </View>
+            {couponOn && (
+              <View style={styles.sumRow}>
+                <Text style={styles.sumLabel}>Coupon ({COUPON_CODE})</Text>
+                <Text style={[styles.sumVal, styles.saveVal]}>
+                  − {formatINR(discount)}
+                </Text>
+              </View>
+            )}
             <View style={styles.sumRow}>
               <Text style={styles.sumLabel}>You save</Text>
               <Text style={[styles.sumVal, styles.saveVal]}>
@@ -183,23 +228,15 @@ export default function CartScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F5F6FA",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 12,
-  },
-  iconBtn: {
-    padding: 6,
-  },
-  headerIcon: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "600",
+    paddingBottom: 13,
   },
   headerTitle: {
     color: "#fff",
@@ -216,6 +253,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 10,
     marginBottom: 12,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   thumb: {
     width: 84,
@@ -294,6 +337,49 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#EEE",
     padding: 16,
+    backgroundColor: "#fff",
+  },
+  couponRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  couponInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#E2E2E2",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: "#111",
+    backgroundColor: "#F8F8F8",
+    marginRight: 8,
+  },
+  couponBtn: {
+    backgroundColor: "#171A4B",
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    borderWidth: 1,
+    borderColor: "#FFC42E",
+  },
+  couponBtnText: {
+    color: "#FFC42E",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  couponOk: {
+    fontSize: 13,
+    color: TEAL,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  couponErr: {
+    fontSize: 13,
+    color: RED,
+    fontWeight: "600",
+    marginBottom: 8,
   },
   sumRow: {
     flexDirection: "row",
@@ -326,7 +412,7 @@ const styles = StyleSheet.create({
   totalVal: {
     fontSize: 18,
     fontWeight: "900",
-    color: "#111",
+    color: RED,
   },
   checkout: {
     backgroundColor: RED,
@@ -334,6 +420,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     marginTop: 12,
+    borderWidth: 1.5,
+    borderColor: "#FFC42E",
   },
   checkoutText: {
     color: "#fff",
@@ -362,7 +450,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   shopBtn: {
-    backgroundColor: "#111",
+    backgroundColor: RED,
     borderRadius: 10,
     paddingHorizontal: 28,
     paddingVertical: 12,

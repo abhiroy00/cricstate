@@ -17,6 +17,15 @@ import { useAuth } from "../../hooks/useAuth";
 import { useLooking } from "./LookingContext";
 import FilterSheet from "../../components/FilterSheet";
 import AppLogo from "../../components/AppLogo";
+import DreamHeader from "../../components/DreamHeader";
+import ProPill from "../../components/ProPill";
+import {
+  ChatGlyph,
+  FilterGlyph,
+  HeaderIconBtn,
+  MenuGlyph,
+  TargetGlyph,
+} from "../../components/HeaderIcon";
 
 // FilterSheet TYPE -> post type mapping (unmapped sheet options are ignored)
 const SHEET_TYPE_MAP = {
@@ -27,42 +36,33 @@ const SHEET_TYPE_MAP = {
   Scorer: ["Scorer"],
 };
 
-const RED = "#EA580C";
-const TEAL = "#0FA3A3";
+const RED = "#E01A22";
+const TEAL = "#00A651";
 
 const FILTER_CHIPS = ["Opponent", "Team to join", "Player", "Umpire"];
 
 function LookingHeader({ onMenu, onTarget, onMessage, onFilter, onPro, filterCount }) {
   return (
-    <View style={styles.header}>
+    <DreamHeader style={styles.header}>
       <View style={styles.headerLeft}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
-          <Text style={styles.headerIcon}>☰</Text>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onMenu} label="Menu">
+          <MenuGlyph />
+        </HeaderIconBtn>
         <AppLogo />
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
-          <Text style={styles.proBtnText}>PRO @ ₹199</Text>
-        </TouchableOpacity>
+        <ProPill onPress={onPro} />
       </View>
       <View style={styles.headerRight}>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onTarget}>
-          <Text style={styles.headerIcon}>⌖</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMessage}>
-          <Text style={styles.headerIcon}>💬</Text>
-        </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onFilter}>
-          <View>
-            <Text style={styles.headerIcon}>⧩</Text>
-            {filterCount > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{filterCount}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+        <HeaderIconBtn onPress={onTarget} label="Near me">
+          <TargetGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onMessage} label="Messages">
+          <ChatGlyph />
+        </HeaderIconBtn>
+        <HeaderIconBtn onPress={onFilter} label="Filter" badge={filterCount}>
+          <FilterGlyph active={filterCount > 0} />
+        </HeaderIconBtn>
       </View>
-    </View>
+    </DreamHeader>
   );
 }
 
@@ -344,12 +344,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingVertical: 10,
+    paddingBottom: 13,
+    shadowColor: "#A60E14",
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 6,
   },
   headerLeft: {
     flexDirection: "row",
@@ -359,14 +364,7 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  headerBtn: {
-    padding: 6,
-  },
-  headerIcon: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "600",
+    gap: 6,
   },
 
   logoWrap: {
