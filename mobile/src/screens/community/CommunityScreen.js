@@ -265,7 +265,7 @@ function CommunityHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterC
       </View>
       <View style={styles.headerRight}>
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onSearch}>
-          <Text style={styles.headerIcon}>⌕</Text>
+          <Text style={styles.searchIcon}>⌕</Text>
         </TouchableOpacity>
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMessage}>
           <Text style={styles.headerIcon}>💬</Text>
@@ -433,6 +433,11 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   headerIcon: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  searchIcon: {
     color: "#fff",
     fontSize: 24,
     fontWeight: "600",
