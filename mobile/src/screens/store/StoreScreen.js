@@ -1,90 +1,141 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../hooks/useAuth";
+import {
+  BANNERS,
+  CATEGORIES,
+  PRODUCTS,
+  RED,
+  TEAL,
+  formatINR,
+  productsIn,
+} from "../../data/storeData";
+import ProductCard from "./ProductCard";
+import ProductDetailModal from "./ProductDetailModal";
+import { useCart } from "./StoreCartContext";
 import StoreMenuDrawer from "./StoreMenuDrawer";
 
-const RED = "#E02020";
-const TEAL = "#0FA3A3";
-
-const CATEGORIES = [
-  "New Launch",
-  "Whites",
-  "Clearance",
-  "Bats",
-  "Bestsellers",
-  "express",
-  "T-Shirts",
-  "Sleeveless Tanks",
-  "Shorts",
-  "Uppers",
-  "Track Pants",
-  "Compression Wear",
-  "Batting",
-  "Bowling",
-  "Caps",
-  "Hat",
-  "Sleeves",
-];
-
-const BANNERS = [
-  { id: "1", top: "Some classics never fade.", title: "Eternal\nWhites", cta: "Explore now" },
-  { id: "2", top: "New season. New gear.", title: "Pro\nEdition", cta: "Shop now" },
-  { id: "3", top: "Built for match day.", title: "Match\nReady", cta: "Explore now" },
-  { id: "4", top: "Clearance sale live.", title: "Up to\n50% Off", cta: "Grab now" },
-  { id: "5", top: "Trusted by pros.", title: "Team\nFavourites", cta: "View all" },
-];
-
-const PRODUCTS = [
-  { id: "1", name: "Pro White Jersey", price: "₹999", tag: "Whites", emoji: "👕" },
-  { id: "2", name: "English Willow Bat", price: "₹4,299", tag: "New", emoji: "🏏" },
-  { id: "3", name: "Leather Ball (4pc)", price: "₹499", tag: "Best Seller", emoji: "🔴" },
-];
-
-function HeroBanner({ item }) {
+function HeroBanner({ item, onPress }) {
   return (
-    <View style={styles.hero}>
+    <View style={[styles.hero, { backgroundColor: item.bg }]}>
       <Text style={styles.heroTop}>{item.top}</Text>
       <Text style={styles.heroTitle}>{item.title}</Text>
-
-      {/* Centre model placeholder — replace with <Image> when assets are ready */}
       <View style={styles.heroModel}>
         <Text style={styles.heroModelEmoji}>🧍🏽</Text>
         <Text style={styles.heroModelShirt}>👕</Text>
       </View>
-
-      {/* Side collar hints like the screenshot edges */}
       <Text style={styles.heroLeftCollar}>👕</Text>
       <Text style={styles.heroRightCollar}>👕</Text>
-
-      <TouchableOpacity activeOpacity={0.85} style={styles.heroCta}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={styles.heroCta}
+        onPress={onPress}
+      >
         <Text style={styles.heroCtaText}>{item.cta}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+function StoreSearch({ visible, onClose, onPick }) {
+  const [q, setQ] = useState("");
+  const query = q.trim().toLowerCase();
+  const hits = query
+    ? PRODUCTS.filter((p) =>
+        `${p.name} ${p.brand}`.toLowerCase().includes(query)
+      )
+    : PRODUCTS.slice(0, 5);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.searchDim}>
+        <View style={styles.searchBox}>
+          <View style={styles.searchBar}>
+            <Text style={styles.searchIcon}>⌕</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search jerseys, bats, balls..."
+              value={q}
+              onChangeText={setQ}
+              autoFocus
+              returnKeyType="search"
+            />
+            <TouchableOpacity hitSlop={8} onPress={onClose}>
+              <Text style={styles.searchCancel}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={hits}
+            keyExtractor={(i) => i.id}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              <Text style={styles.searchHint}>
+                No products for "{q}". Try another name.
+              </Text>
+            }
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.hitRow}
+                activeOpacity={0.7}
+                onPress={() => {
+                  onClose();
+                  onPick?.(item);
+                }}
+              >
+                <View
+                  style={[styles.hitThumb, { backgroundColor: item.bg }]}
+                >
+                  <Text style={styles.hitEmoji}>{item.emoji}</Text>
+                </View>
+                <View style={styles.hitMid}>
+                  <Text style={styles.hitName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.hitPrice}>
+                    {formatINR(item.price)}{" "}
+                    <Text style={styles.hitMrp}>{formatINR(item.mrp)}</Text>
+                  </Text>
+                </View>
+                <Text style={styles.hitArrow}>›</Text>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function StoreScreen({ navigation }) {
   const { user } = useAuth();
+  const { count } = useCart();
   const [activeBanner, setActiveBanner] = useState(0);
   const [offerOpen, setOfferOpen] = useState(false);
-  const [cartCount] = useState(0);
+  const [offerApplied, setOfferApplied] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
   const bannerRef = useRef(null);
-  const sellerRef = useRef(null);
   const bannerIndex = useRef(0);
-  const sellerIndex = useRef(0);
 
-  // Auto-play hero banners every 3s
   useEffect(() => {
     const id = setInterval(() => {
       bannerIndex.current = (bannerIndex.current + 1) % BANNERS.length;
@@ -94,27 +145,31 @@ export default function StoreScreen({ navigation }) {
         animated: true,
       });
       setActiveBanner(bannerIndex.current);
-    }, 3000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Auto-play best sellers cards every 2.5s
-  useEffect(() => {
-    const id = setInterval(() => {
-      sellerIndex.current = (sellerIndex.current + 1) % PRODUCTS.length;
-      sellerRef.current?.scrollToOffset({
-        offset: sellerIndex.current * 162,
-        animated: true,
-      });
-    }, 2500);
+    }, 3500);
     return () => clearInterval(id);
   }, []);
 
   const firstName = user?.full_name?.split(" ")?.[0] || "Anshmeet";
+  const bestPages = useMemo(() => {
+    const all = productsIn("bestsellers");
+    const pages = [];
+    for (let i = 0; i < all.length; i += 2) pages.push(all.slice(i, i + 2));
+    return pages;
+  }, []);
+  const [bestPage, setBestPage] = useState(0);
+  const newPages = useMemo(() => {
+    const all = productsIn("new");
+    const pages = [];
+    for (let i = 0; i < all.length; i += 2) pages.push(all.slice(i, i + 2));
+    return pages;
+  }, []);
+  const [newPage, setNewPage] = useState(0);
+
+  const goCollection = (screen, title) =>
+    navigation?.navigate?.(screen, { title });
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      {/* Red header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity
@@ -130,14 +185,22 @@ export default function StoreScreen({ navigation }) {
           <Text style={styles.headerTitle}>Store</Text>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity hitSlop={12} style={styles.iconBtn}>
-            <Text style={styles.headerIcon}>↗</Text>
+          <TouchableOpacity
+            hitSlop={12}
+            style={styles.iconBtn}
+            onPress={() => setSearchOpen(true)}
+          >
+            <Text style={styles.headerIcon}>⌕</Text>
           </TouchableOpacity>
-          <TouchableOpacity hitSlop={12} style={styles.iconBtn}>
+          <TouchableOpacity
+            hitSlop={12}
+            style={styles.iconBtn}
+            onPress={() => navigation?.navigate?.("Cart")}
+          >
             <Text style={styles.headerIcon}>🛍</Text>
-            {cartCount > 0 && (
+            {count > 0 && (
               <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartCount}</Text>
+                <Text style={styles.cartBadgeText}>{count}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -145,7 +208,6 @@ export default function StoreScreen({ navigation }) {
       </View>
 
       <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-        {/* Category pills */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -161,64 +223,17 @@ export default function StoreScreen({ navigation }) {
           </TouchableOpacity>
           {CATEGORIES.map((c) => (
             <TouchableOpacity
-              key={c}
+              key={c.label}
               style={styles.pill}
               activeOpacity={0.8}
-              onPress={() => {
-                if (c === "New Launch") {
-                  navigation?.navigate?.("DesignOfMonth", {
-                    title: "Design of The Month",
-                  });
-                } else if (c === "Whites") {
-                  navigation?.navigate?.("TimelessClassics", {
-                    title: "Timeless Classics",
-                  });
-                } else if (c === "Clearance") {
-                  navigation?.navigate?.("Clearance", {
-                    title: "Clearance",
-                  });
-                } else if (c === "Bats") {
-                  navigation?.navigate?.("PicksUnder499", {
-                    title: "Picks Under ₹499",
-                  });
-                } else if (
-                  c === "Batting" ||
-                  c === "Bowling" ||
-                  c === "Caps" ||
-                  c === "Hat" ||
-                  c === "Sleeves"
-                ) {
-                  navigation?.navigate?.("PicksUnder499", {
-                    title: "Picks Under ₹499",
-                  });
-                } else if (c === "Bestsellers") {
-                  navigation?.navigate?.("Bestsellers", {
-                    title: "Bestsellers",
-                  });
-                } else if (c === "Shorts") {
-                  navigation?.navigate?.("ApparelShorts", {
-                    title: "Apparel - Shorts",
-                  });
-                } else if (
-                  c === "express" ||
-                  c === "T-Shirts" ||
-                  c === "Sleeveless Tanks" ||
-                  c === "Uppers" ||
-                  c === "Track Pants" ||
-                  c === "Compression Wear"
-                ) {
-                  navigation?.navigate?.("TimelessClassics", {
-                    title: "Timeless Classics",
-                  });
-                }
-              }}
+              onPress={() => goCollection(c.screen, c.title)}
             >
-              <Text style={styles.pillText}>{c}</Text>
+              <Text style={styles.pillEmoji}>{c.emoji}</Text>
+              <Text style={styles.pillText}>{c.label}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        {/* Hero carousel */}
         <FlatList
           ref={bannerRef}
           data={BANNERS}
@@ -234,7 +249,10 @@ export default function StoreScreen({ navigation }) {
           }}
           renderItem={({ item }) => (
             <View style={styles.heroSlide}>
-              <HeroBanner item={item} />
+              <HeroBanner
+                item={item}
+                onPress={() => goCollection(item.screen, item.params.title)}
+              />
             </View>
           )}
         />
@@ -247,7 +265,6 @@ export default function StoreScreen({ navigation }) {
           ))}
         </View>
 
-        {/* Greeting */}
         <View style={styles.greetWrap}>
           <Text style={styles.greet}>
             <Text style={styles.greetEmoji}>👋 </Text> Hello, {firstName}
@@ -258,7 +275,6 @@ export default function StoreScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* Offer card */}
         <TouchableOpacity
           activeOpacity={0.85}
           style={styles.offerCard}
@@ -277,58 +293,115 @@ export default function StoreScreen({ navigation }) {
           {offerOpen && (
             <View style={styles.offerDetail}>
               <Text style={styles.offerDetailText}>
-                Use code CRIC20 at checkout. Valid on Whites & New Launch. T&C apply.
+                Use code CRIC20 at checkout. Valid on Whites & New Launch. T&C
+                apply.
               </Text>
-              <TouchableOpacity style={styles.offerBtn}>
-                <Text style={styles.offerBtnText}>Apply</Text>
+              <TouchableOpacity
+                style={[styles.offerBtn, offerApplied && styles.offerBtnDone]}
+                onPress={() => setOfferApplied(true)}
+              >
+                <Text style={styles.offerBtnText}>
+                  {offerApplied ? "Applied ✓" : "Apply"}
+                </Text>
               </TouchableOpacity>
             </View>
           )}
         </TouchableOpacity>
 
-        {/* Best sellers swiper */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() =>
-            navigation?.navigate?.("Bestsellers", { title: "Bestsellers" })
-          }
-        >
+        <View style={styles.sectionHead}>
           <Text style={styles.sectionTitle}>Best sellers</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            hitSlop={8}
+            onPress={() => goCollection("Bestsellers", "Bestsellers")}
+          >
+            <Text style={styles.sectionLink}>View all</Text>
+          </TouchableOpacity>
+        </View>
         <FlatList
-          ref={sellerRef}
-          data={PRODUCTS}
-          keyExtractor={(p) => p.id}
+          data={bestPages}
+          keyExtractor={(_, i) => `best-page-${i}`}
           horizontal
+          pagingEnabled
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.productsRow}
-          snapToInterval={162}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          disableIntervalMomentum
-          renderItem={({ item: p }) => (
-            <TouchableOpacity
-              style={styles.card}
-              activeOpacity={0.85}
-              onPress={() =>
-                navigation?.navigate?.("Bestsellers", { title: "Bestsellers" })
-              }
-            >
-              <View style={styles.cardImage}>
-                <Text style={styles.cardEmoji}>{p.emoji}</Text>
-                <View style={styles.cardTag}>
-                  <Text style={styles.cardTagText}>{p.tag}</Text>
+          onMomentumScrollEnd={(e) => {
+            const w = Dimensions.get("window").width;
+            setBestPage(Math.round(e.nativeEvent.contentOffset.x / w));
+          }}
+          renderItem={({ item: pair }) => (
+            <View style={styles.newPage}>
+              {pair.map((p) => (
+                <View key={p.id} style={styles.newCard}>
+                  <ProductCard item={p} compact onPress={setSelected} />
                 </View>
-              </View>
-              <Text style={styles.cardName} numberOfLines={1}>
-                {p.name}
-              </Text>
-              <Text style={styles.cardPrice}>{p.price}</Text>
-            </TouchableOpacity>
+              ))}
+            </View>
           )}
         />
+        <View style={styles.dotsRow}>
+          {bestPages.map((_, i) => (
+            <View
+              key={`best-dot-${i}`}
+              style={[styles.dot, i === bestPage ? styles.dotActive : null]}
+            />
+          ))}
+        </View>
+
+        <View style={styles.sectionHead}>
+          <Text style={styles.sectionTitle}>New arrivals</Text>
+          <TouchableOpacity
+            hitSlop={8}
+            onPress={() => goCollection("NewArrivals", "New Arrivals")}
+          >
+            <Text style={styles.sectionLink}>View all</Text>
+          </TouchableOpacity>
+        </View>
+        <FlatList
+          data={newPages}
+          keyExtractor={(_, i) => `new-page-${i}`}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => {
+            const w = Dimensions.get("window").width;
+            setNewPage(Math.round(e.nativeEvent.contentOffset.x / w));
+          }}
+          renderItem={({ item: pair }) => (
+            <View style={styles.newPage}>
+              {pair.map((p) => (
+                <View key={p.id} style={styles.newCard}>
+                  <ProductCard item={p} compact onPress={setSelected} />
+                </View>
+              ))}
+            </View>
+          )}
+        />
+        <View style={styles.dotsRow}>
+          {newPages.map((_, i) => (
+            <View
+              key={`new-dot-${i}`}
+              style={[styles.dot, i === newPage ? styles.dotActive : null]}
+            />
+          ))}
+        </View>
+        <View style={{ height: 8 }} />
         <View style={{ height: 24 }} />
       </ScrollView>
+
+      <StoreSearch
+        visible={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onPick={setSelected}
+      />
+
+      <ProductDetailModal
+        product={selected}
+        visible={!!selected}
+        onClose={() => setSelected(null)}
+        onBuyNow={() => {
+          setSelected(null);
+          navigation?.navigate?.("Cart");
+        }}
+      />
 
       <StoreMenuDrawer
         visible={menuVisible}
@@ -341,40 +414,21 @@ export default function StoreScreen({ navigation }) {
         onSelect={(section) => {
           setMenuVisible(false);
           const label = section?.child || section?.label;
-          if (label === "New Launch") {
-            navigation?.navigate?.("DesignOfMonth", {
-              title: "Design of The Month",
-            });
+          const found = CATEGORIES.find((c) => c.label === label);
+          if (label === "My Orders") {
+            navigation?.navigate?.("Cart");
+          } else if (found) {
+            goCollection(found.screen, found.title);
+          } else if (label === "New Launch" || label === "Eternal Whites") {
+            goCollection("DesignOfMonth", "Design of The Month");
+          } else if (label === "Team Favourites" || label === "Collection") {
+            goCollection("Bestsellers", "Bestsellers");
           } else if (
-            label === "Whites" ||
-            label === "Eternal Whites" ||
-            label === "Apparel"
+            ["Cricket Bats", "Balls", "Equipment", "Accessories"].includes(label)
           ) {
-            navigation?.navigate?.("TimelessClassics", {
-              title: "Timeless Classics",
-            });
-          } else if (label === "Clearance") {
-            navigation?.navigate?.("Clearance", {
-              title: "Clearance",
-            });
-          } else if (
-            label === "Bats" ||
-            label === "Balls" ||
-            label === "Cricket Bats" ||
-            label === "Equipment" ||
-            label === "Accessories"
-          ) {
-            navigation?.navigate?.("PicksUnder499", {
-              title: "Picks Under ₹499",
-            });
-          } else if (
-            label === "Team Favourites" ||
-            label === "Collection" ||
-            label === "My Orders"
-          ) {
-            navigation?.navigate?.("Bestsellers", {
-              title: "Bestsellers",
-            });
+            goCollection("PicksUnder499", "Picks Under ₹499");
+          } else if (label === "Apparel") {
+            goCollection("TimelessClassics", "Timeless Classics");
           }
         }}
       />
@@ -453,7 +507,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 10,
   },
   pill: {
     flexDirection: "row",
@@ -471,6 +524,10 @@ const styles = StyleSheet.create({
     marginRight: 6,
     fontWeight: "700",
   },
+  pillEmoji: {
+    fontSize: 15,
+    marginRight: 6,
+  },
   pillText: {
     fontSize: 15,
     color: "#111",
@@ -481,7 +538,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   hero: {
-    backgroundColor: "#6E6E6E",
     borderRadius: 18,
     overflow: "hidden",
     minHeight: 380,
@@ -495,7 +551,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   heroTitle: {
-    color: "#D9D9D9",
+    color: "#fff",
     fontSize: 58,
     fontWeight: "900",
     lineHeight: 60,
@@ -519,14 +575,14 @@ const styles = StyleSheet.create({
     left: -22,
     bottom: 30,
     fontSize: 110,
-    opacity: 0.95,
+    opacity: 0.3,
   },
   heroRightCollar: {
     position: "absolute",
     right: -22,
     top: 10,
     fontSize: 110,
-    opacity: 0.95,
+    opacity: 0.3,
   },
   heroCta: {
     position: "absolute",
@@ -546,7 +602,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 14,
-    gap: 10,
   },
   dot: {
     width: 5,
@@ -644,65 +699,133 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
+  offerBtnDone: {
+    backgroundColor: TEAL,
+  },
   offerBtnText: {
     color: "#fff",
     fontWeight: "700",
   },
+  sectionHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop: 22,
+    marginBottom: 10,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "800",
-    marginHorizontal: 16,
-    marginTop: 22,
-    marginBottom: 10,
     color: "#111",
   },
-  productsRow: {
+  sectionLink: {
+    fontSize: 15,
+    color: TEAL,
+    fontWeight: "500",
+  },
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    gap: 12,
   },
-  card: {
-    width: 150,
-    marginRight: 12,
+  newPage: {
+    width: Dimensions.get("window").width,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+  },
+  newCard: {
+    width: (Dimensions.get("window").width - 32 - 12) / 2,
+  },
+  searchDim: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  searchBox: {
     backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#EDEDED",
-    borderRadius: 14,
-    padding: 10,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    padding: 16,
+    maxHeight: "80%",
+    minHeight: 320,
   },
-  cardImage: {
-    backgroundColor: "#F5F5F5",
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E2E2E2",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  searchIcon: {
+    fontSize: 20,
+    color: "#777",
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#111",
+    paddingVertical: 12,
+  },
+  searchCancel: {
+    fontSize: 18,
+    color: "#777",
+    fontWeight: "600",
+    padding: 4,
+  },
+  searchHint: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+    marginTop: 24,
+    paddingHorizontal: 20,
+  },
+  hitRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F2F2F2",
+  },
+  hitThumb: {
+    width: 52,
+    height: 52,
     borderRadius: 10,
-    height: 110,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 10,
   },
-  cardEmoji: {
-    fontSize: 52,
+  hitEmoji: {
+    fontSize: 30,
   },
-  cardTag: {
-    position: "absolute",
-    top: 6,
-    left: 6,
-    backgroundColor: "#111",
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+  hitMid: {
+    flex: 1,
   },
-  cardTagText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "700",
-  },
-  cardName: {
-    fontSize: 13,
+  hitName: {
+    fontSize: 15,
     fontWeight: "600",
-    marginTop: 8,
     color: "#111",
   },
-  cardPrice: {
+  hitPrice: {
     fontSize: 14,
     fontWeight: "800",
-    marginTop: 2,
     color: "#111",
+    marginTop: 2,
+  },
+  hitMrp: {
+    fontSize: 12,
+    color: "#B5B5B5",
+    textDecorationLine: "line-through",
+    fontWeight: "400",
+  },
+  hitArrow: {
+    fontSize: 22,
+    color: "#BBB",
+    marginLeft: 8,
   },
 });

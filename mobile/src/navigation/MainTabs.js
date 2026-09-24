@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import ComingSoonScreen from "../screens/common/ComingSoonScreen";
-import HomeScreen from "../screens/home/HomeScreen";
+import HomeStack from "./HomeStack";
 import StoreStack from "./StoreStack";
 import { colors } from "../utils/theme";
 import MyCricketStack from "./MyCricketStack";
@@ -27,7 +27,7 @@ export default function MainTabs() {
         tabBarLabel: `${TAB_ICONS[route.name] || ""} ${route.name}`,
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Looking" component={ComingSoonScreen} initialParams={{ title: "Looking" }} />
       <Tab.Screen name="My Cricket" component={MyCricketStack} />
       <Tab.Screen name="Community" component={ComingSoonScreen} initialParams={{ title: "Community" }} />

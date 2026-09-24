@@ -8,6 +8,7 @@ import StatsSection from "./sections/StatsSection";
 import TeamsSection from "./sections/TeamsSection";
 import TournamentsSection from "./sections/TournamentsSection";
 import FilterSheet from "../../components/FilterSheet";
+import SearchOverlay from "../../components/SearchOverlay";
 
 const SECTIONS = [
   { key: "MATCHES", label: "Matches" },
@@ -28,36 +29,36 @@ const SECTION_COMPONENTS = {
 const RED = "#C81E1E";
 const TEAL = "#199A8E";
 
-function AppHeader({ onMenu, onMessage, onFilter, filterCount }) {
+function AppHeader({ onMenu, onSearch, onMessage, onFilter, filterCount }) {
   return (
     <View style={styles.header}>
-      <TouchableOpacity onPress={onMenu} hitSlop={12} style={styles.headerIcon}>
-        <Text style={styles.headerIconText}>☰</Text>
-      </TouchableOpacity>
-
-      <View style={styles.logoRow}>
-        <View style={styles.logoMark}>
-          <Text style={styles.logoMarkText}>10</Text>
+      <View style={styles.headerLeft}>
+        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
+          <Text style={styles.headerIcon}>☰</Text>
+        </TouchableOpacity>
+        <View style={styles.logoWrap}>
+          <Text style={styles.logoBall}>🏏</Text>
         </View>
-        <View style={styles.proPill}>
-          <Text style={styles.proPillText}>PRO @ ₹199</Text>
-        </View>
+        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn}>
+          <Text style={styles.proBtnText}>PRO @ ₹199</Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={styles.headerActions}>
-        <TouchableOpacity hitSlop={10} style={styles.headerIcon}>
-          <Text style={styles.headerIconText}>⌕</Text>
+      <View style={styles.headerRight}>
+        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onSearch}>
+          <Text style={styles.headerIcon}>⌕</Text>
         </TouchableOpacity>
-        <TouchableOpacity hitSlop={10} style={styles.headerIcon} onPress={onMessage}>
-          <Text style={styles.headerIconText}>💬</Text>
+        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMessage}>
+          <Text style={styles.headerIcon}>💬</Text>
         </TouchableOpacity>
-        <TouchableOpacity hitSlop={10} style={styles.headerIcon} onPress={onFilter}>
-          <Text style={styles.headerIconText}>⧩</Text>
-          {filterCount > 0 && (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{filterCount}</Text>
-            </View>
-          )}
+        <TouchableOpacity hitSlop={10} style={styles.headerBtn} onPress={onFilter}>
+          <View>
+            <Text style={styles.headerIcon}>⧩</Text>
+            {filterCount > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{filterCount}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -70,6 +71,7 @@ export default function MyCricketHomeScreen({ navigation, route }) {
   const [filterVisible, setFilterVisible] = useState(false);
   const [filterCat, setFilterCat] = useState("LOCATION");
   const [filterCount, setFilterCount] = useState(1);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     if (route?.params?.section && SECTION_COMPONENTS[route.params.section]) {
@@ -82,6 +84,7 @@ export default function MyCricketHomeScreen({ navigation, route }) {
       <StatusBar barStyle="light-content" backgroundColor={RED} />
       <AppHeader
         onMenu={() => navigation.openDrawer?.()}
+        onSearch={() => setSearchOpen(true)}
         onMessage={() => navigation.navigate("DirectMessages")}
         onFilter={() => setFilterVisible(true)}
         filterCount={filterCount}
@@ -123,6 +126,11 @@ export default function MyCricketHomeScreen({ navigation, route }) {
           setFilterCount((f.locations?.length || 0) + (f.types?.length || 0) + (f.balls?.length || 0))
         }
       />
+      <SearchOverlay
+        visible={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSeeMatch={() => navigation.navigate("AllMatches")}
+      />
     </SafeAreaView>
   );
 }
@@ -136,17 +144,55 @@ const styles = StyleSheet.create({
     backgroundColor: RED,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 10,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerBtn: {
+    padding: 6,
   },
   headerIcon: {
-    paddingHorizontal: 6,
-    paddingVertical: 4,
-  },
-  headerIconText: {
     color: "#fff",
-    fontSize: 22,
+    fontSize: 24,
+    fontWeight: "600",
+  },
+  logoWrap: {
+    marginLeft: 6,
+  },
+  logoBall: {
+    fontSize: 30,
+  },
+  proBtn: {
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.85)",
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginLeft: 10,
+  },
+  proBtnText: {
+    color: "#fff",
+    fontSize: 15,
     fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+  bellDot: {
+    position: "absolute",
+    top: 2,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#fff",
   },
   filterBadge: {
     position: "absolute",
