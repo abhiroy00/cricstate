@@ -18,6 +18,7 @@ import {
   HeaderIconBtn,
   SearchGlyph,
 } from "../../components/HeaderIcon";
+import { RoleGlyph } from "../../components/RoleIcon";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -136,7 +137,7 @@ function GroundCard({ item, onPress }) {
           }}
           renderItem={({ item: p }) => (
             <View style={[styles.banner, { backgroundColor: p.bg }]}>
-              <Text style={styles.bannerEmoji}>{p.emoji}</Text>
+              <RoleGlyph role="grounds" size={76} />
               <View style={styles.bannerShade} />
             </View>
           )}

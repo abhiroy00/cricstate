@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
+import RoleIcon from "../../components/RoleIcon";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -50,6 +51,24 @@ const SAMPLE = {
 };
 
 const FILTERS = ["All", "Near me", "Top rated"];
+
+const ROLE_FOR_ID = [
+  ["st", "streamers"],
+  ["s", "scorers"],
+  ["u", "umpires"],
+  ["c", "commentators"],
+  ["o", "organisers"],
+  ["a", "academies"],
+  ["g", "grounds"],
+  ["b", "box"],
+];
+const roleForId = (id = "") => {
+  for (const [prefix, role] of ROLE_FOR_ID) {
+    if (id.startsWith(prefix)) return role;
+  }
+  return "cricket";
+};
+
 
 export default function CommunityListScreen({ navigation, route }) {
   const { category = "all", title = "Community", city = "Delhi" } = route?.params || {};
@@ -96,11 +115,9 @@ export default function CommunityListScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.empty}>No providers found in {city} yet.</Text>}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <View style={styles.card}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{item.name?.[0] || "C"}</Text>
-            </View>
+            <RoleIcon role={roleForId(item.id)} size={44} tone={index % 2 ? "navy" : "red"} />
             <View style={styles.mid}>
               <Text style={styles.name} numberOfLines={1}>
                 {item.name} <Text style={styles.rating}>★ {item.rating}</Text>
@@ -162,7 +179,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderColor: TEAL,
+    borderColor: "#E5E5E5",
     borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 7,
@@ -170,12 +187,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   chipOn: {
-    backgroundColor: TEAL,
+    backgroundColor: RED,
+    borderColor: RED,
   },
   chipText: {
     fontSize: 14,
-    color: TEAL,
-    fontWeight: "500",
+    color: RED,
+    fontWeight: "700",
   },
   chipTextOn: {
     color: "#fff",

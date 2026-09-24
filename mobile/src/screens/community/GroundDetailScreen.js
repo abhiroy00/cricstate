@@ -18,6 +18,7 @@ import {
   HeaderIconBtn,
   ShareGlyph,
 } from "../../components/HeaderIcon";
+import { RoleGlyph } from "../../components/RoleIcon";
 
 const TEAL = "#00A651";
 const RED = "#E01A22";
@@ -175,7 +176,7 @@ export default function GroundDetailScreen({ navigation, route }) {
           }}
           renderItem={({ item }) => (
             <View style={[styles.photo, { backgroundColor: item.bg || ground.bg }]}>
-              <Text style={styles.photoEmoji}>{item.emoji || ground.emoji}</Text>
+              <RoleGlyph role="grounds" size={72} />
             </View>
           )}
         />

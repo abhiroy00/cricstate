@@ -17,6 +17,7 @@ import {
   HeaderIconBtn,
   SearchGlyph,
 } from "../../components/HeaderIcon";
+import RoleIcon from "../../components/RoleIcon";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -79,15 +80,11 @@ function SortRow({ label, selected, onPress }) {
   );
 }
 
-function StreamerCard({ item, onPress }) {
+function StreamerCard({ item, onPress, tone }) {
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => onPress?.(item)}>
       <View style={styles.cardTop}>
-        <View style={[styles.logo, { backgroundColor: item.bg }]}>
-          <Text style={[styles.logoText, { color: item.fg || "#fff" }]} numberOfLines={2}>
-            {item.initials}
-          </Text>
-        </View>
+        <RoleIcon role="streamers" size={88} tone={tone} style={{ marginRight: 14 }} />
         <View style={styles.mid}>
           <Text style={styles.name} numberOfLines={2}>
             {item.name}
@@ -227,7 +224,9 @@ export default function StreamersScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: 16 + insets.bottom }]}
         ListEmptyComponent={<Text style={styles.empty}>No streamers found in {city} yet.</Text>}
-        renderItem={({ item }) => <StreamerCard item={item} onPress={openStreamer} />}
+        renderItem={({ item, index }) => (
+          <StreamerCard item={item} onPress={openStreamer} tone={index % 2 ? "navy" : "red"} />
+        )}
       />
 
       <Modal visible={sortOpen} transparent animationType="slide" onRequestClose={() => setSortOpen(false)}>

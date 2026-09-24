@@ -17,6 +17,7 @@ import {
   HeaderIconBtn,
   SearchGlyph,
 } from "../../components/HeaderIcon";
+import { RoleGlyph } from "../../components/RoleIcon";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -93,7 +94,7 @@ function AcademyCard({ item, onPress }) {
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => onPress?.(item)}>
       <View style={[styles.banner, { backgroundColor: item.bg }]}>
-        <Text style={styles.bannerEmoji}>{item.emoji}</Text>
+        <RoleGlyph role="academies" size={76} />
         <View style={styles.bannerShade} />
       </View>
       <View style={styles.body}>

@@ -20,6 +20,7 @@ import {
   SearchGlyph,
   ShareGlyph,
 } from "../../components/HeaderIcon";
+import RoleIcon from "../../components/RoleIcon";
 import SearchOverlay from "../../components/SearchOverlay";
 
 const RED = "#E01A22";
@@ -94,7 +95,7 @@ function ChatIcon() {
   );
 }
 
-function RankCard({ item, statLabel, onChat, onOpen }) {
+function RankCard({ item, statLabel, onChat, onOpen, role, tone }) {
   return (
     <TouchableOpacity
       style={styles.card}
@@ -102,9 +103,7 @@ function RankCard({ item, statLabel, onChat, onOpen }) {
       onPress={onOpen}
     >
       <View style={styles.cardTop}>
-        <View style={[styles.photo, { backgroundColor: item.bg }]}>
-          <Text style={styles.photoText}>{item.initials}</Text>
-        </View>
+        <RoleIcon role={role} size={84} tone={tone} style={{ marginRight: 10 }} />
         <View style={styles.mid}>
           <View style={styles.nameRow}>
             <Text style={styles.name} numberOfLines={1}>
@@ -231,9 +230,11 @@ export default function LeaderboardScreen({
         style={styles.listFlex}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <RankCard
             item={item}
+            role={role}
+            tone={index % 2 ? "navy" : "red"}
             statLabel={statLabel}
             onChat={() => navigation?.navigate?.("DirectMessages")}
             onOpen={() =>

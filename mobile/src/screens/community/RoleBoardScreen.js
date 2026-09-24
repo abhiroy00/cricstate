@@ -22,6 +22,7 @@ import {
   SearchGlyph,
   ShareGlyph,
 } from "../../components/HeaderIcon";
+import RoleIcon from "../../components/RoleIcon";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -47,13 +48,11 @@ export function roleEntryToPerson(item = {}, rank = 1) {
   };
 }
 
-function RankCard({ item, rank, unit, onContact, onOpen }) {
+function RankCard({ item, rank, unit, onContact, onOpen, tone }) {
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => onOpen?.(item)}>
       <View style={styles.cardTop}>
-        <View style={[styles.photo, { backgroundColor: item.bg }]}>
-          <Text style={styles.photoEmoji}>{item.emoji}</Text>
-        </View>
+        <RoleIcon role={roleKey} size={84} tone={tone} style={{ marginRight: 12 }} />
         <View style={styles.cardMid}>
           <Text style={styles.name} numberOfLines={1}>
             {item.name} <Text style={styles.medal}>🏵</Text>
@@ -232,6 +231,7 @@ export default function RoleBoardScreen({ navigation, route }) {
             <RankCard
               item={item}
               rank={index + 1}
+              tone={index % 2 ? "navy" : "red"}
               unit={role.unit}
               onContact={contactPerson}
               onOpen={(tapped) => openPerson(tapped, index)}

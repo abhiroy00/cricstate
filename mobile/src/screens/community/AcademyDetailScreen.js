@@ -12,6 +12,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { BackGlyph, HeaderIconBtn, ShareGlyph } from "../../components/HeaderIcon";
+import RoleIcon, { RoleGlyph } from "../../components/RoleIcon";
 
 const TEAL = "#00A651";
 const TEAL_LIGHT = "#45B8AC";
@@ -84,17 +86,17 @@ export default function AcademyDetailScreen({ navigation, route }) {
         contentContainerStyle={{ paddingBottom: 24 + insets.bottom }}
       >
         <View style={[styles.banner, { backgroundColor: academy.bg }]}>
-          <Text style={styles.bannerEmoji}>{academy.emoji}</Text>
+          <RoleGlyph role="academies" size={88} />
           <View style={styles.bannerShade} />
           <View style={styles.topRow}>
-            <TouchableOpacity hitSlop={12} style={styles.backBtn} onPress={() => navigation?.goBack?.()}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
+            <HeaderIconBtn onPress={() => navigation?.goBack?.()} label="Back">
+              <BackGlyph />
+            </HeaderIconBtn>
             <View style={{ flex: 1 }} />
             <Text style={styles.views}>👥 {academy.views} Views</Text>
-            <TouchableOpacity hitSlop={12} style={styles.shareBtn} onPress={shareAcademy}>
-              <Text style={styles.shareIcon}>↗</Text>
-            </TouchableOpacity>
+            <HeaderIconBtn onPress={shareAcademy} label="Share">
+              <ShareGlyph />
+            </HeaderIconBtn>
           </View>
           <View style={styles.dots}>
             <View style={styles.dotOn} />
@@ -202,9 +204,9 @@ export default function AcademyDetailScreen({ navigation, route }) {
               scrollEnabled={false}
               columnWrapperStyle={{ gap: 10 }}
               contentContainerStyle={{ gap: 10 }}
-              renderItem={({ item }) => (
-                <View style={[styles.photoBox, { backgroundColor: academy.bg }]}>
-                  <Text style={styles.photoEmoji}>{item}</Text>
+              renderItem={({ item, index }) => (
+                <View style={styles.photoBox}>
+                  <RoleIcon role="academies" size={92} tone={index % 2 ? "navy" : "red"} />
                 </View>
               )}
             />

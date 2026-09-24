@@ -17,6 +17,7 @@ import {
   HeaderIconBtn,
   SearchGlyph,
 } from "../../components/HeaderIcon";
+import RoleIcon from "../../components/RoleIcon";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -71,15 +72,11 @@ function SortRow({ label, selected, onPress }) {
   );
 }
 
-function BoxCard({ item, onPress }) {
+function BoxCard({ item, onPress, tone }) {
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => onPress?.(item)}>
       <View style={styles.cardTop}>
-        <View style={[styles.logo, { backgroundColor: item.bg }]}>
-          <Text style={[styles.logoText, { color: item.fg || "#fff" }]} numberOfLines={2}>
-            {item.initials}
-          </Text>
-        </View>
+        <RoleIcon role="box" size={88} tone={tone} style={{ marginRight: 14 }} />
         <View style={styles.mid}>
           <Text style={styles.name} numberOfLines={1}>
             {item.name}
@@ -213,7 +210,9 @@ export default function BoxCricketScreen({ navigation, route }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: 16 + insets.bottom }]}
         ListEmptyComponent={<Text style={styles.empty}>No venues found in {city} yet.</Text>}
-        renderItem={({ item }) => <BoxCard item={item} onPress={openBox} />}
+        renderItem={({ item, index }) => (
+          <BoxCard item={item} onPress={openBox} tone={index % 2 ? "navy" : "red"} />
+        )}
       />
 
       <Modal visible={sortOpen} transparent animationType="slide" onRequestClose={() => setSortOpen(false)}>
