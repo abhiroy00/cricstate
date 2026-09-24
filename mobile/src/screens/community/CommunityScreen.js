@@ -303,6 +303,26 @@ export default function CommunityScreen({ navigation }) {
       navigation?.navigate?.("Umpires", { city });
       return;
     }
+    if (tile.key === "commentators") {
+      navigation?.navigate?.("Commentators", { city });
+      return;
+    }
+    if (tile.key === "streamers") {
+      navigation?.navigate?.("Streamers", { city });
+      return;
+    }
+    if (tile.key === "organisers") {
+      navigation?.navigate?.("Organisers", { city });
+      return;
+    }
+    if (tile.key === "academies") {
+      navigation?.navigate?.("Academies", { city });
+      return;
+    }
+    if (tile.key === "grounds") {
+      navigation?.navigate?.("Grounds", { city });
+      return;
+    }
     navigation?.navigate?.("CommunityList", {
       category: tile.key,
       title: tile.label,

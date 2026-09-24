@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import FilterSheet from "../../components/FilterSheet";
 import { ROLES } from "./roleData";
@@ -19,9 +19,29 @@ const RED = "#EA580C";
 const TEAL = "#0FA3A3";
 const DEFAULT_SCOPE = "New Bongaigaon Railway Colony - September";
 
-function RankCard({ item, rank, unit, onContact }) {
+function initialsOf(name = "") {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "C";
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+export function roleEntryToPerson(item = {}, rank = 1) {
+  return {
+    id: String(item.id ?? rank),
+    name: item.name ?? "Unknown",
+    initials: item.initials || initialsOf(item.name),
+    bg: item.bg || "#6E7F80",
+    matches: item.matches ?? 0,
+    points: item.points ?? 0,
+    rate: item.rate || [item.feeDay, item.feeMatch].filter(Boolean).join(", "),
+    medal: item.medal ?? true,
+  };
+}
+
+function RankCard({ item, rank, unit, onContact, onOpen }) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => onOpen?.(item)}>
       <View style={styles.cardTop}>
         <View style={[styles.photo, { backgroundColor: item.bg }]}>
           <Text style={styles.photoEmoji}>{item.emoji}</Text>
@@ -47,23 +67,27 @@ function RankCard({ item, rank, unit, onContact }) {
           <Text style={styles.chatIcon}>💬</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 export default function RoleBoardScreen({ navigation, route }) {
   const roleKey = route?.params?.role || "scorers";
   const role = ROLES[roleKey] || ROLES.scorers;
+  const cityParam = route?.params?.city;
+  const initialScope = cityParam ? `${cityParam} - September` : DEFAULT_SCOPE;
 
   const [entries, setEntries] = useState(role.seed);
   const [filtered, setFiltered] = useState(true);
-  const [scope, setScope] = useState(DEFAULT_SCOPE);
+  const [scope, setScope] = useState(initialScope);
   const [expanded, setExpanded] = useState(false);
   const [searchOn, setSearchOn] = useState(false);
   const [query, setQuery] = useState("");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [badge, setBadge] = useState(4);
   const [infoOpen, setInfoOpen] = useState(false);
+  const insets = useSafeAreaInsets();
+  const boardCity = cityParam || "India";
 
   const newEntry = route?.params?.newEntry;
   useEffect(() => {
@@ -76,7 +100,7 @@ export default function RoleBoardScreen({ navigation, route }) {
   useEffect(() => {
     setEntries(role.seed);
     setFiltered(true);
-    setScope(DEFAULT_SCOPE);
+    setScope(route?.params?.city ? `${route.params.city} - September` : DEFAULT_SCOPE);
     setExpanded(false);
   }, [roleKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -96,6 +120,20 @@ export default function RoleBoardScreen({ navigation, route }) {
         .map((e, i) => `${i + 1}. ${e.name} (${e.points} pts)`)
         .join(", ")}`,
     }).catch(() => {});
+  };
+
+  const openPerson = (item, index) => {
+    const mapped = roleEntryToPerson(item, index + 1);
+    navigation?.navigate?.("ProfileDetail", {
+      person: { ...mapped, id: String(index + 1) },
+      role: roleKey,
+      city: boardCity,
+      title: role.title,
+    });
+  };
+
+  const contactPerson = () => {
+    navigation?.navigate?.("DirectMessages");
   };
 
   return (
@@ -170,8 +208,8 @@ export default function RoleBoardScreen({ navigation, route }) {
       {filtered ? (
         <View style={styles.empty}>
           <View style={styles.emptyArt}>
-            <Text style={styles.emptySun}>●</Text>
-            <Text style={styles.emptyMount}>⛰</Text>
+            <View style={styles.emptyDot} />
+            <View style={styles.emptyTriangle} />
             <View style={styles.emptyLines}>
               <View style={styles.emptyLine} />
               <View style={[styles.emptyLine, styles.emptyLineShort]} />
@@ -198,12 +236,18 @@ export default function RoleBoardScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.list}
           renderItem={({ item, index }) => (
-            <RankCard item={item} rank={index + 1} unit={role.unit} />
+            <RankCard
+              item={item}
+              rank={index + 1}
+              unit={role.unit}
+              onContact={contactPerson}
+              onOpen={(tapped) => openPerson(tapped, index)}
+            />
           )}
         />
       )}
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
         <TouchableOpacity
           style={styles.viewBtn}
           activeOpacity={0.8}
@@ -467,36 +511,48 @@ const styles = StyleSheet.create({
     paddingBottom: 60,
   },
   emptyArt: {
-    width: 250,
-    height: 170,
+    width: 280,
+    height: 190,
     borderWidth: 3,
-    borderColor: "#DDD",
-    borderRadius: 8,
+    borderColor: "#D9D9D9",
+    borderRadius: 10,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     backgroundColor: "#fff",
+    paddingTop: 18,
+    overflow: "visible",
   },
-  emptySun: {
-    fontSize: 40,
-    color: "#DDD",
+  emptyDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#D9D9D9",
   },
-  emptyMount: {
-    fontSize: 90,
-    color: "#DDD",
-    marginTop: -20,
+  emptyTriangle: {
+    width: 0,
+    height: 0,
+    marginTop: 14,
+    borderLeftWidth: 52,
+    borderRightWidth: 52,
+    borderBottomWidth: 78,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "#D9D9D9",
   },
   emptyLines: {
-    marginTop: 6,
+    marginTop: 14,
+    alignItems: "center",
   },
   emptyLine: {
-    width: 150,
-    height: 8,
-    borderRadius: 4,
+    width: 190,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: "#E2E2E2",
-    marginTop: 6,
+    marginTop: 0,
   },
   emptyLineShort: {
-    width: 100,
+    width: 130,
+    marginTop: 8,
   },
   emptyText: {
     fontSize: 18,

@@ -4,6 +4,15 @@ import CommunityScreen from "../screens/community/CommunityScreen";
 import CommunityListScreen from "../screens/community/CommunityListScreen";
 import ScorersScreen from "../screens/community/ScorersScreen";
 import UmpiresScreen from "../screens/community/UmpiresScreen";
+import CommentatorsScreen from "../screens/community/CommentatorsScreen";
+import StreamersScreen from "../screens/community/StreamersScreen";
+import StreamerDetailScreen from "../screens/community/StreamerDetailScreen";
+import OrganisersScreen from "../screens/community/OrganisersScreen";
+import OrganiserDetailScreen from "../screens/community/OrganiserDetailScreen";
+import AcademiesScreen from "../screens/community/AcademiesScreen";
+import AcademyDetailScreen from "../screens/community/AcademyDetailScreen";
+import GroundsScreen from "../screens/community/GroundsScreen";
+import GroundDetailScreen from "../screens/community/GroundDetailScreen";
 import ProfileDetailScreen from "../screens/community/ProfileDetailScreen";
 import RoleBoardScreen from "../screens/community/RoleBoardScreen";
 import AddRoleScreen from "../screens/community/AddRoleScreen";
@@ -18,6 +27,15 @@ export default function CommunityStack() {
       <Stack.Screen name="CommunityHome" component={CommunityScreen} />
       <Stack.Screen name="Scorers" component={ScorersScreen} />
       <Stack.Screen name="Umpires" component={UmpiresScreen} />
+      <Stack.Screen name="Commentators" component={CommentatorsScreen} />
+      <Stack.Screen name="Streamers" component={StreamersScreen} />
+      <Stack.Screen name="StreamerDetail" component={StreamerDetailScreen} />
+      <Stack.Screen name="Organisers" component={OrganisersScreen} />
+      <Stack.Screen name="OrganiserDetail" component={OrganiserDetailScreen} />
+      <Stack.Screen name="Academies" component={AcademiesScreen} />
+      <Stack.Screen name="AcademyDetail" component={AcademyDetailScreen} />
+      <Stack.Screen name="Grounds" component={GroundsScreen} />
+      <Stack.Screen name="GroundDetail" component={GroundDetailScreen} />
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />
       <Stack.Screen name="RoleBoard" component={RoleBoardScreen} />

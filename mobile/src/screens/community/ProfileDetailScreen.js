@@ -126,13 +126,45 @@ export default function ProfileDetailScreen({ navigation, route }) {
 
   const singular = role.replace(/s$/, "");
   const roleLabel = singular.charAt(0).toUpperCase() + singular.slice(1);
-  const idNum = parseInt(person.id, 10) || 1;
+  const safePerson = {
+    ...person,
+    initials:
+      person.initials ||
+      String(person.name || "C")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase(),
+    rate:
+      person.rate ||
+      [person.feeDay, person.feeMatch].filter(Boolean).join(", ") ||
+      "—",
+  };
+  const idNum = parseInt(safePerson.id, 10) || 1;
   const rating = (4.6 + ((idNum * 7) % 4) * 0.1).toFixed(1);
-  const reviewCount = 40 + ((person.matches * 13) % 160);
+  const reviewCount = 40 + ((safePerson.matches * 13) % 160);
   const allTime = idNum + 2;
-  const totalMatches = person.matches * 24 + 154;
+  const totalMatches = safePerson.matches * 24 + 154;
   const exp = `${(idNum % 4) + 2} yrs`;
-  const isScorer = role === "scorers";
+  const matchesLabel =
+    role === "scorers"
+      ? "Matches scored"
+      : role === "umpires"
+        ? "Matches umpired"
+        : role === "commentators"
+          ? "Matches covered"
+          : "Matches";
+  const lastDateLabel =
+    role === "scorers"
+      ? "Last date of scoring"
+      : role === "umpires"
+        ? "Last date of umpiring"
+        : role === "commentators"
+          ? "Last date of commentary"
+          : "Last active date";
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -158,11 +190,11 @@ export default function ProfileDetailScreen({ navigation, route }) {
         contentContainerStyle={{ paddingBottom: 24 + insets.bottom }}
       >
         <View style={styles.profile}>
-          <View style={[styles.photo, { backgroundColor: person.bg }]}>
-            <Text style={styles.photoText}>{person.initials}</Text>
+          <View style={[styles.photo, { backgroundColor: safePerson.bg }]}>
+            <Text style={styles.photoText}>{safePerson.initials}</Text>
           </View>
           <View style={styles.nameRow}>
-            <Text style={styles.name}>{person.name}</Text>
+            <Text style={styles.name}>{safePerson.name}</Text>
             <MedalBig />
           </View>
           <Text style={styles.role}>
@@ -179,7 +211,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
           <View style={styles.divider} />
           <View style={styles.rateRow}>
             <Text style={styles.rate} numberOfLines={1}>
-              {person.rate}
+              {safePerson.rate}
             </Text>
             <Text style={styles.rating}>{rating}</Text>
             <Stars size={19} />
@@ -225,7 +257,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
                   </View>
                 }
                 icon="⭐"
-                rank={person.id}
+                rank={safePerson.id}
                 city={city}
               />
               <View style={styles.card}>
@@ -234,11 +266,11 @@ export default function ProfileDetailScreen({ navigation, route }) {
                 </View>
                 <View style={styles.detailBody}>
                   <Text style={styles.detailLabel}>
-                    {isScorer ? "Matches scored" : "Matches umpired"}
+                    {matchesLabel}
                   </Text>
                   <Text style={styles.detailVal}>{totalMatches}</Text>
                   <Text style={[styles.detailLabel, styles.detailGap]}>
-                    {isScorer ? "Last date of scoring" : "Last date of umpiring"}
+                    {lastDateLabel}
                   </Text>
                   <Text style={styles.detailVal}>24-09-2026</Text>
                   <Text style={[styles.detailLabel, styles.detailGap]}>
