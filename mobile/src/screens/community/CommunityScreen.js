@@ -11,6 +11,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { DrawerActions } from "@react-navigation/native";
 
+import FilterSheet from "../../components/FilterSheet";
+import SearchOverlay from "../../components/SearchOverlay";
+
 // Screenshot se nikale exact colours
 const RED = "#D71920";
 const TEAL = "#0E9E9B";
@@ -247,27 +250,36 @@ const TILES = [
 // Organisers ke neeche (middle column) rahe, right edge par na khiske.
 const GRID = [...TILES, { key: "blank", blank: true }];
 
-function CommunityHeader({ onMenu, onSearch, onInbox, onFilter }) {
+function CommunityHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterCount }) {
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
-          <MenuIcon />
+          <Text style={styles.headerIcon}>☰</Text>
         </TouchableOpacity>
-        <AppLogo />
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn}>
+        <View style={styles.logoWrap}>
+          <Text style={styles.logoBall}>🏏</Text>
+        </View>
+        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.headerRight}>
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onSearch}>
-          <SearchIcon />
+          <Text style={styles.headerIcon}>⌕</Text>
         </TouchableOpacity>
-        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onInbox}>
-          <InboxIcon />
+        <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMessage}>
+          <Text style={styles.headerIcon}>💬</Text>
         </TouchableOpacity>
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onFilter}>
-          <FilterIcon count={1} />
+          <View>
+            <Text style={styles.headerIcon}>⧩</Text>
+            {filterCount > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{filterCount}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -277,6 +289,9 @@ function CommunityHeader({ onMenu, onSearch, onInbox, onFilter }) {
 export default function CommunityScreen({ navigation }) {
   const [city, setCity] = useState("Delhi");
   const [cityOpen, setCityOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterCount, setFilterCount] = useState(0);
 
   const openDrawer = () => navigation?.dispatch?.(DrawerActions.openDrawer());
 
@@ -300,21 +315,11 @@ export default function CommunityScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <CommunityHeader
         onMenu={openDrawer}
-        onSearch={() =>
-          navigation?.navigate?.("CommunityList", {
-            category: "all",
-            title: "Search community",
-            city,
-          })
-        }
-        onInbox={() => navigation?.navigate?.("DirectMessages")}
-        onFilter={() =>
-          navigation?.navigate?.("CommunityList", {
-            category: "all",
-            title: "All services",
-            city,
-          })
-        }
+        onPro={() => navigation?.navigate?.("ProBenefits")}
+        onSearch={() => setSearchOpen(true)}
+        onMessage={() => navigation?.navigate?.("DirectMessages")}
+        onFilter={() => setFilterOpen(true)}
+        filterCount={filterCount}
       />
 
       <View style={styles.titleRow}>
@@ -377,6 +382,26 @@ export default function CommunityScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      <SearchOverlay
+        visible={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onSeeMatch={() => navigation?.navigate?.("My Cricket")}
+      />
+
+      <FilterSheet
+        visible={filterOpen}
+        initialCat="LOCATION"
+        onClose={() => setFilterOpen(false)}
+        onApply={(f) => {
+          const n =
+            (f.locations?.length || 0) +
+            (f.types?.length || 0) +
+            (f.balls?.length || 0);
+          setFilterCount(n);
+          if (f.locations?.length > 0) setCity(f.locations[0]);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -408,6 +433,14 @@ const styles = StyleSheet.create({
   headerBtn: {
     padding: 8,
   },
+  headerIcon: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "600",
+  },
+  logoWrap: {
+    marginLeft: 6,
+  },
   hBar: {
     width: 22,
     height: 2.6,
@@ -427,14 +460,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   logoBall: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#fff",
-    marginLeft: -8,
-    marginTop: -10,
-    alignItems: "center",
-    justifyContent: "center",
+    fontSize: 30,
   },
   logoSeam: {
     width: 12,

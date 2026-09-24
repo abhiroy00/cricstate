@@ -29,7 +29,7 @@ const SECTION_COMPONENTS = {
 const RED = "#C81E1E";
 const TEAL = "#199A8E";
 
-function AppHeader({ onMenu, onSearch, onMessage, onFilter, filterCount }) {
+function AppHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterCount }) {
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
@@ -39,7 +39,7 @@ function AppHeader({ onMenu, onSearch, onMessage, onFilter, filterCount }) {
         <View style={styles.logoWrap}>
           <Text style={styles.logoBall}>🏏</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn}>
+        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
       </View>
@@ -84,6 +84,7 @@ export default function MyCricketHomeScreen({ navigation, route }) {
       <StatusBar barStyle="light-content" backgroundColor={RED} />
       <AppHeader
         onMenu={() => navigation.openDrawer?.()}
+        onPro={() => navigation.navigate("ProBenefits")}
         onSearch={() => setSearchOpen(true)}
         onMessage={() => navigation.navigate("DirectMessages")}
         onFilter={() => setFilterVisible(true)}

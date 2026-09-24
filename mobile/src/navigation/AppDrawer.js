@@ -1,6 +1,7 @@
 import { createDrawerNavigator } from "@react-navigation/drawer";
 
 import InfoScreen from "../screens/common/InfoScreen";
+import ProBenefitsScreen from "../screens/mycricket/ProBenefitsScreen";
 import MainTabs from "./MainTabs";
 import ProfileStack from "./ProfileStack";
 import AppDrawerContent from "./AppDrawerContent";
@@ -16,6 +17,7 @@ export default function AppDrawer() {
       <Drawer.Screen name="Main" component={MainTabs} />
       <Drawer.Screen name="ProfileRoot" component={ProfileStack} />
       <Drawer.Screen name="Info" component={InfoScreen} />
+      <Drawer.Screen name="ProBenefits" component={ProBenefitsScreen} />
     </Drawer.Navigator>
   );
 }

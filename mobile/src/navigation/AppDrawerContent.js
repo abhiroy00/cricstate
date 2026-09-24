@@ -118,7 +118,7 @@ export default function AppDrawerContent({ navigation }) {
       </View>
 
       <ScrollView ref={listRef} showsVerticalScrollIndicator={false}>
-        <Row icon="🏅" label="PRO at ₹199 (No autopay)" onPress={() => goMain("My Cricket", "ProBenefits")} />
+        <Row icon="🏅" label="PRO at ₹199 (No autopay)" onPress={() => go("ProBenefits")} />
         <Row icon="🏆" label="Add a Tournament/Series" badge="Free" onPress={() => goMain("My Cricket", "CreateTournament")} />
         <Row icon="⏱" label="Start A Match" badge="Free" onPress={() => goMain("My Cricket", "StartMatch")} />
         <Row icon="🎥" label="Go Live" onPress={() => goMain("My Cricket", "StartMatch")} />

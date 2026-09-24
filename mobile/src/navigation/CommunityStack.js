@@ -8,6 +8,7 @@ import ProfileDetailScreen from "../screens/community/ProfileDetailScreen";
 import RoleBoardScreen from "../screens/community/RoleBoardScreen";
 import AddRoleScreen from "../screens/community/AddRoleScreen";
 import DirectMessagesScreen from "../screens/mycricket/DirectMessagesScreen";
+import ProBenefitsScreen from "../screens/mycricket/ProBenefitsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,7 @@ export default function CommunityStack() {
       <Stack.Screen name="RoleBoard" component={RoleBoardScreen} />
       <Stack.Screen name="AddRole" component={AddRoleScreen} />
       <Stack.Screen name="DirectMessages" component={DirectMessagesScreen} />
+      <Stack.Screen name="ProBenefits" component={ProBenefitsScreen} />
     </Stack.Navigator>
   );
 }

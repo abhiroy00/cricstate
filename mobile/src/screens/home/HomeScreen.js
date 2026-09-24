@@ -47,7 +47,7 @@ const JERSEYS = [
   { id: "3", color: "#0B6E4F", accent: "#FFD23F", name: "NISHANT GIRI", no: "88" },
 ];
 
-function Header({ onSearch, onBell, onInbox, onMenu, showBellDot = true }) {
+function Header({ onSearch, onBell, onInbox, onMenu, onPro, showBellDot = true }) {
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
@@ -57,7 +57,7 @@ function Header({ onSearch, onBell, onInbox, onMenu, showBellDot = true }) {
         <View style={styles.logoWrap}>
           <Text style={styles.logoBall}>🏏</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn}>
+        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
       </View>
@@ -696,6 +696,7 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <Header
         onMenu={openAppDrawer}
+        onPro={() => navigation.navigate("ProBenefits")}
         onSearch={() => setSearchOpen(true)}
         onBell={() => setNotifOpen(true)}
         showBellDot={hasUnread}

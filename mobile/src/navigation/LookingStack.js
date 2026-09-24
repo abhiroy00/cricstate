@@ -7,6 +7,7 @@ import LiveStreamersScreen from "../screens/looking/LiveStreamersScreen";
 import LiveFilterScreen from "../screens/looking/LiveFilterScreen";
 import YourPostsScreen from "../screens/looking/YourPostsScreen";
 import DirectMessagesScreen from "../screens/mycricket/DirectMessagesScreen";
+import ProBenefitsScreen from "../screens/mycricket/ProBenefitsScreen";
 import { LookingProvider } from "../screens/looking/LookingContext";
 
 const Stack = createNativeStackNavigator();
@@ -22,6 +23,7 @@ export default function LookingStack() {
         <Stack.Screen name="LiveFilter" component={LiveFilterScreen} />
         <Stack.Screen name="YourPosts" component={YourPostsScreen} />
         <Stack.Screen name="DirectMessages" component={DirectMessagesScreen} />
+        <Stack.Screen name="ProBenefits" component={ProBenefitsScreen} />
       </Stack.Navigator>
     </LookingProvider>
   );

@@ -31,7 +31,7 @@ const TEAL = "#0FA3A3";
 
 const FILTER_CHIPS = ["Opponent", "Team to join", "Player", "Umpire"];
 
-function LookingHeader({ onMenu, onTarget, onMessage, onFilter, filterCount }) {
+function LookingHeader({ onMenu, onTarget, onMessage, onFilter, onPro, filterCount }) {
   return (
     <View style={styles.header}>
       <View style={styles.headerLeft}>
@@ -41,7 +41,7 @@ function LookingHeader({ onMenu, onTarget, onMessage, onFilter, filterCount }) {
         <View style={styles.logoWrap}>
           <Text style={styles.logoBall}>🏏</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn}>
+        <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
       </View>
@@ -201,6 +201,7 @@ export default function LookingScreen({ navigation }) {
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <LookingHeader
         onMenu={openDrawer}
+        onPro={() => navigation?.navigate?.("ProBenefits")}
         onTarget={() => {}}
         onMessage={() => navigation?.navigate?.("DirectMessages")}
         onFilter={() => setFilterVisible(true)}

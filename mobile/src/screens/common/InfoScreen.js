@@ -28,6 +28,12 @@ const BODIES = {
     "By using CricState you agree to fair play, accurate scoring and respectful conduct. Accounts violating policies may be suspended.",
   "Paid Service Terms":
     "PRO is billed per plan at purchase. Benefits activate instantly and are non-transferable. Refunds follow app-store policies.",
+  "Notification Preferences":
+    "Choose what you get notified about: match invites, Looking responses, order updates and PRO offers. Granular toggles arrive in the next update.",
+  Language:
+    "Current language: English. More languages are coming soon.",
+  "Purchase History":
+    "Your store orders will appear here with live tracking. Order history arrives together with the store backend.",
 };
 
 export default function InfoScreen({ navigation, route }) {
