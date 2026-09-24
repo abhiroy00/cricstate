@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
+  Linking,
   Modal,
   ScrollView,
   StyleSheet,
@@ -124,6 +125,69 @@ function StoreSearch({ visible, onClose, onPick }) {
   );
 }
 
+const POLICY_TEXTS = {
+  "Shipping Policy":
+    "Orders ship within 24–48 hours. Metro cities get delivery in 2–4 days, rest of India in 4–7 days. Free shipping on orders above ₹999, flat ₹49 below that.",
+  "Return & Exchange":
+    "7-day easy size exchange on apparel. Equipment must be unused with tags intact. Personalised jerseys are non-returnable unless damaged or wrong item delivered.",
+  "Privacy Policy":
+    "Your name, address and order details are used only to fulfil orders and improve recommendations. We never sell your personal data to third parties.",
+  "Terms of Use":
+    "Prices include all taxes. Discount codes apply per offer terms. CricHeroes Store may cancel orders in case of pricing errors, with a full refund.",
+};
+
+// Drawer label -> [screen, title]. Every tappable menu item is covered.
+const MENU_LINKS = {
+  "Cricket Bats": ["Bestsellers", "Bestsellers"],
+  Balls: ["PicksUnder499", "Picks Under ₹499"],
+  Gloves: ["Bestsellers", "Bestsellers"],
+  Pads: ["Bestsellers", "Bestsellers"],
+  Helmets: ["Bestsellers", "Bestsellers"],
+  "Kit Bags": ["Bestsellers", "Bestsellers"],
+  Jerseys: ["DesignOfMonth", "Design of The Month"],
+  Whites: ["TimelessClassics", "Timeless Classics"],
+  "Track Pants": ["Clearance", "Clearance"],
+  Caps: ["PicksUnder499", "Picks Under ₹499"],
+  Shoes: ["Bestsellers", "Bestsellers"],
+  Grips: ["PicksUnder499", "Picks Under ₹499"],
+  Guards: ["PicksUnder499", "Picks Under ₹499"],
+  Sunglasses: ["PicksUnder499", "Picks Under ₹499"],
+  "Water Bottles": ["PicksUnder499", "Picks Under ₹499"],
+  "New Launch": ["DesignOfMonth", "Design of The Month"],
+  "New Arrivals": ["NewArrivals", "New Arrivals"],
+  "Eternal Whites": ["TimelessClassics", "Timeless Classics"],
+  Clearance: ["Clearance", "Clearance"],
+  "Team Favourites": ["Bestsellers", "Bestsellers"],
+};
+
+function PolicyModal({ policy, onClose }) {
+  return (
+    <Modal
+      visible={!!policy}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.searchDim}>
+        <View style={styles.searchBox}>
+          <View style={styles.policyHead}>
+            <Text style={styles.policyTitle}>{policy}</Text>
+            <TouchableOpacity hitSlop={8} onPress={onClose}>
+              <Text style={styles.searchCancel}>✕</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <Text style={styles.policyBody}>
+              {POLICY_TEXTS[policy] || ""}
+            </Text>
+            <View style={{ height: 16 }} />
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 export default function StoreScreen({ navigation }) {
   const { user } = useAuth();
   const { count } = useCart();
@@ -133,6 +197,7 @@ export default function StoreScreen({ navigation }) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [policy, setPolicy] = useState(null);
   const bannerRef = useRef(null);
   const bannerIndex = useRef(0);
 
@@ -167,6 +232,14 @@ export default function StoreScreen({ navigation }) {
 
   const goCollection = (screen, title) =>
     navigation?.navigate?.(screen, { title });
+
+  // Drawer khula ho aur tab switch ho to drawer band kar do
+  useEffect(() => {
+    const unsub = navigation?.addListener?.("blur", () =>
+      setMenuVisible(false)
+    );
+    return unsub;
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -403,6 +476,8 @@ export default function StoreScreen({ navigation }) {
         }}
       />
 
+      <PolicyModal policy={policy} onClose={() => setPolicy(null)} />
+
       <StoreMenuDrawer
         visible={menuVisible}
         userName={firstName}
@@ -411,24 +486,33 @@ export default function StoreScreen({ navigation }) {
           setMenuVisible(false);
           navigation?.goBack?.();
         }}
+        onContact={(type) => {
+          setMenuVisible(false);
+          const url =
+            type === "email"
+              ? "mailto:support@cricstate.app?subject=Store%20Query"
+              : "https://wa.me/919999999999?text=Hi%2C%20I%20need%20help%20with%20my%20store%20order";
+          Linking.openURL(url).catch(() => {});
+        }}
         onSelect={(section) => {
           setMenuVisible(false);
           const label = section?.child || section?.label;
-          const found = CATEGORIES.find((c) => c.label === label);
           if (label === "My Orders") {
             navigation?.navigate?.("Cart");
-          } else if (found) {
+            return;
+          }
+          if (POLICY_TEXTS[label]) {
+            setPolicy(label);
+            return;
+          }
+          const found = CATEGORIES.find((c) => c.label === label);
+          if (found) {
             goCollection(found.screen, found.title);
-          } else if (label === "New Launch" || label === "Eternal Whites") {
-            goCollection("DesignOfMonth", "Design of The Month");
-          } else if (label === "Team Favourites" || label === "Collection") {
-            goCollection("Bestsellers", "Bestsellers");
-          } else if (
-            ["Cricket Bats", "Balls", "Equipment", "Accessories"].includes(label)
-          ) {
-            goCollection("PicksUnder499", "Picks Under ₹499");
-          } else if (label === "Apparel") {
-            goCollection("TimelessClassics", "Timeless Classics");
+            return;
+          }
+          const link = MENU_LINKS[label];
+          if (link) {
+            goCollection(link[0], link[1]);
           }
         }}
       />
@@ -777,6 +861,24 @@ const styles = StyleSheet.create({
     color: "#777",
     fontWeight: "600",
     padding: 4,
+  },
+  policyHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  policyTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111",
+    flex: 1,
+    marginRight: 10,
+  },
+  policyBody: {
+    fontSize: 15,
+    lineHeight: 23,
+    color: "#333",
   },
   searchHint: {
     fontSize: 14,

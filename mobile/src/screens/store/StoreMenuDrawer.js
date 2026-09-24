@@ -3,6 +3,8 @@ import {
   Animated,
   Dimensions,
   Modal,
+  PanResponder,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,7 +32,7 @@ const MENU_SECTIONS = [
   {
     id: "collection",
     label: "Collection",
-    children: ["New Launch", "Eternal Whites", "Clearance", "Team Favourites"],
+    children: ["New Launch", "New Arrivals", "Eternal Whites", "Clearance", "Team Favourites"],
   },
   {
     id: "policy",
@@ -42,31 +44,22 @@ const MENU_SECTIONS = [
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const PANEL_WIDTH = Math.min(SCREEN_WIDTH * 0.8, 340);
 
-export default function StoreMenuDrawer({ visible, userName, onClose, onExitStore, onSelect }) {
+export default function StoreMenuDrawer({ visible, userName, onClose, onExitStore, onSelect, onContact }) {
   const [expandedId, setExpandedId] = useState(null);
   const slideAnim = useRef(new Animated.Value(-PANEL_WIDTH)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
       setExpandedId(null);
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
     } else {
       slideAnim.setValue(-PANEL_WIDTH);
-      fadeAnim.setValue(0);
     }
-  }, [visible, slideAnim, fadeAnim]);
+  }, [visible, slideAnim]);
 
   const handleRowPress = (section) => {
     if (section.children.length === 0) {
@@ -75,6 +68,32 @@ export default function StoreMenuDrawer({ visible, userName, onClose, onExitStor
     }
     setExpandedId((prev) => (prev === section.id ? null : section.id));
   };
+
+  // Swipe left on the panel to close (back to store)
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, g) =>
+        Math.abs(g.dx) > 12 && Math.abs(g.dy) < 30,
+      onPanResponderMove: (_, g) => {
+        if (g.dx < 0) slideAnim.setValue(g.dx);
+      },
+      onPanResponderRelease: (_, g) => {
+        if (g.dx < -70) {
+          Animated.timing(slideAnim, {
+            toValue: -PANEL_WIDTH,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => onClose?.());
+        } else {
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   return (
     <Modal
@@ -85,11 +104,15 @@ export default function StoreMenuDrawer({ visible, userName, onClose, onExitStor
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <Animated.View style={[styles.dim, { opacity: fadeAnim }]}>
-          <TouchableOpacity style={styles.dimTouch} activeOpacity={1} onPress={onClose} />
-        </Animated.View>
+        {/* Invisible tap-catcher: any tap outside the panel goes back to store */}
+        <Pressable
+          style={styles.backdrop}
+          onPress={onClose}
+          onPressIn={onClose}
+        />
 
         <Animated.View
+          {...pan.panHandlers}
           style={[styles.panel, { transform: [{ translateX: slideAnim }] }]}
         >
           <View style={styles.greetHeader}>
@@ -141,12 +164,17 @@ export default function StoreMenuDrawer({ visible, userName, onClose, onExitStor
             </Text>
 
             <View style={styles.contactRow}>
-              <TouchableOpacity style={styles.contactBtn} activeOpacity={0.8}>
+              <TouchableOpacity
+                style={styles.contactBtn}
+                activeOpacity={0.8}
+                onPress={() => onContact?.("email")}
+              >
                 <Text style={styles.contactIcon}>✉</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.contactBtn, styles.contactBtnLast]}
                 activeOpacity={0.8}
+                onPress={() => onContact?.("whatsapp")}
               >
                 <Text style={styles.contactIcon}>✆</Text>
               </TouchableOpacity>
@@ -162,6 +190,15 @@ export default function StoreMenuDrawer({ visible, userName, onClose, onExitStor
             </TouchableOpacity>
             <View style={{ height: 24 }} />
           </ScrollView>
+          {/* Right-edge tab inside panel: tap to go back to store */}
+          <TouchableOpacity
+            style={styles.edgeTab}
+            activeOpacity={0.7}
+            hitSlop={10}
+            onPress={onClose}
+          >
+            <Text style={styles.edgeTabText}>‹</Text>
+          </TouchableOpacity>
         </Animated.View>
       </View>
     </Modal>
@@ -173,12 +210,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
   },
-  dim: {
+  backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.55)",
-  },
-  dimTouch: {
-    flex: 1,
   },
   panel: {
     width: PANEL_WIDTH,
@@ -189,6 +222,24 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 4, height: 0 },
     elevation: 16,
+  },
+  edgeTab: {
+    position: "absolute",
+    right: 6,
+    top: "50%",
+    marginTop: -30,
+    width: 26,
+    height: 60,
+    borderRadius: 13,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  edgeTabText: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "800",
+    lineHeight: 26,
   },
   greetHeader: {
     backgroundColor: "#3D3D3D",
