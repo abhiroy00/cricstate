@@ -62,7 +62,7 @@ function Header({ onSearch, onBell, onInbox, onMenu, onPro, showBellDot = true }
       </View>
       <View style={styles.headerRight}>
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onSearch}>
-          <Text style={styles.headerIcon}>⌕</Text>
+          <Text style={styles.searchIcon}>⌕</Text>
         </TouchableOpacity>
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onInbox}>
           <Text style={styles.headerIcon}>💬</Text>
@@ -833,6 +833,11 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   headerIcon: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "600",
+  },
+  searchIcon: {
     color: "#fff",
     fontSize: 24,
     fontWeight: "600",
@@ -1785,7 +1790,7 @@ const styles = StyleSheet.create({
   /* Search + notifications */
   searchDim: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "#fff",
     justifyContent: "flex-end",
   },
   searchBox: {
@@ -1806,9 +1811,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   searchIcon: {
-    fontSize: 20,
-    color: "#777",
+    fontSize: 24,
+    color: "#fff",
     marginRight: 8,
+    fontWeight:"bold"
   },
   searchInput: {
     flex: 1,

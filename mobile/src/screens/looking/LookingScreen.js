@@ -365,9 +365,10 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     color: "#fff",
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "600",
   },
+
   logoWrap: {
     marginLeft: 6,
   },
