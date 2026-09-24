@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Dimensions,
   FlatList,
   Modal,
   Pressable,
@@ -14,21 +15,24 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const RED = "#D71920";
 const TEAL = "#0E9E9B";
 const BASE_COUNT = 93;
+const CARD_W = Dimensions.get("window").width - 30;
 
 const CITIES = ["Delhi", "Mumbai", "Bengaluru", "Chennai", "Kolkata", "Hyderabad"];
 
 const SEED = [
   {
     id: "g1", name: "Heaven Cricket Graund", address: "Burari, Delhi, India",
-    rating: 0.0, reviews: 1, location: "Delhi", pitch: "Turf", matches: 18,
-    fee: "₹3000-4500", views: 512, bg: "#6B7F5E", emoji: "🏟",
-    facilities: ["Turf Wicket", "Dressing Room", "Parking", "Drinking Water"],
+    rating: 4.0, reviews: 1, location: "Delhi", pitch: "Turf", matches: 18,
+    fee: "₹3000-4500", views: 403, bg: "#6B7F5E", emoji: "🏟",
+    mapLink: "https://maps.app.goo.gl/uk5aPJqox5up2LZb6?g_st=com.google.maps.preview.copy",
+    facilities: ["Umpires", "Scorers", "Drinking Water", "Balls"],
     feesDetail: "₹3000-4500/match",
   },
   {
     id: "g2", name: "08 yamuna cricket ground", address: "Yamuna Bank, Delhi, India",
     rating: null, reviews: 0, location: "Delhi", pitch: "Turf", matches: 0,
     fee: "₹3000-4500", views: 388, bg: "#5C7A4E", emoji: "🏟",
+    mapLink: "https://maps.app.goo.gl/yamuna-bank-delhi-ground",
     facilities: ["Turf Wicket", "Nets"],
     feesDetail: "₹3000-4500/match",
   },
@@ -36,6 +40,7 @@ const SEED = [
     id: "g3", name: "Green Park Ground", address: "Mayur Vihar, Delhi, India",
     rating: 4.2, reviews: 6, location: "Delhi", pitch: "Turf", matches: 42,
     fee: "₹4000-6000", views: 764, bg: "#3E7C4F", emoji: "🏏",
+    mapLink: "https://maps.app.goo.gl/green-park-mayur-vihar",
     facilities: ["Turf Wicket", "Floodlights", "Dressing Room", "Canteen"],
     feesDetail: "₹4000-6000/match",
   },
@@ -43,6 +48,7 @@ const SEED = [
     id: "g4", name: "City Sports Complex", address: "Dwarka, Delhi, India",
     rating: 3.9, reviews: 4, location: "Delhi", pitch: "Cement", matches: 25,
     fee: "₹2500-4000", views: 421, bg: "#7A8A5E", emoji: "🏟",
+    mapLink: "https://maps.app.goo.gl/city-sports-dwarka",
     facilities: ["Cement Wicket", "Nets", "Parking"],
     feesDetail: "₹2500-4000/match",
   },
@@ -85,12 +91,54 @@ function MetaRow({ parts }) {
   );
 }
 
+function cardPhotos(item) {
+  return [
+    { bg: item.bg, emoji: item.emoji },
+    { bg: "#3E5A3E", emoji: "🏏" },
+    { bg: "#7A8A5E", emoji: "🏟" },
+  ];
+}
+
 function GroundCard({ item, onPress }) {
+  const [index, setIndex] = useState(0);
+  const listRef = useRef(null);
+  const photos = cardPhotos(item);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setIndex((i) => {
+        const n = (i + 1) % photos.length;
+        listRef.current?.scrollToOffset({ offset: n * CARD_W, animated: true });
+        return n;
+      });
+    }, 3000);
+    return () => clearInterval(t);
+  }, [photos.length]);
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => onPress?.(item)}>
-      <View style={[styles.banner, { backgroundColor: item.bg }]}>
-        <Text style={styles.bannerEmoji}>{item.emoji}</Text>
-        <View style={styles.bannerShade} />
+      <View>
+        <FlatList
+          ref={listRef}
+          data={photos}
+          keyExtractor={(_, i) => String(i)}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => {
+            const w = e.nativeEvent.layoutMeasurement.width;
+            if (w > 0) setIndex(Math.round(e.nativeEvent.contentOffset.x / w));
+          }}
+          renderItem={({ item: p }) => (
+            <View style={[styles.banner, { backgroundColor: p.bg }]}>
+              <Text style={styles.bannerEmoji}>{p.emoji}</Text>
+              <View style={styles.bannerShade} />
+            </View>
+          )}
+        />
+        <View style={styles.cardDots}>
+          {photos.map((_, i) => (
+            <View key={i} style={i === index ? styles.cardDotOn : styles.cardDot} />
+          ))}
+        </View>
       </View>
       <View style={styles.body}>
         <Text style={styles.name} numberOfLines={1}>
@@ -152,7 +200,7 @@ export default function GroundsScreen({ navigation, route }) {
         id: `x-${Date.now()}`, name: nm, address: `${city}, India`,
         rating: null, reviews: 0, location: city, pitch: "Turf", matches: 0,
         fee: "₹-/--", views: 0, bg: "#0E9E9B", emoji: "🏟",
-        facilities: [], feesDetail: "-",
+        mapLink: "", facilities: [], feesDetail: "-",
       },
       ...p,
     ]);
@@ -411,9 +459,20 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  banner: { height: 170, alignItems: "center", justifyContent: "center" },
+  banner: { width: CARD_W, height: 170, alignItems: "center", justifyContent: "center" },
   bannerEmoji: { fontSize: 72 },
   bannerShade: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.22)" },
+  cardDots: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 8,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
+  },
+  cardDotOn: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff" },
+  cardDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.6)", marginTop: 1 },
   body: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, gap: 6 },
   name: { fontSize: 21, fontWeight: "400", color: "#222" },
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 10 },

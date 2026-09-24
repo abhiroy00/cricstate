@@ -1,5 +1,6 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ComingSoonScreen from "../screens/common/ComingSoonScreen";
 import HomeStack from "./HomeStack";
@@ -46,6 +47,7 @@ function StoreTabIcon({ focused }) {
 }
 
 export default function MainTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <CartProvider>
       <Tab.Navigator
@@ -53,7 +55,10 @@ export default function MainTabs() {
           headerShown: false,
           tabBarActiveTintColor: RED,
           tabBarInactiveTintColor: "#8A8A8A",
-          tabBarStyle: styles.bar,
+          tabBarStyle: [
+            styles.bar,
+            { height: 68 + insets.bottom, paddingBottom: 10 + insets.bottom },
+          ],
           tabBarLabelStyle: styles.label,
           tabBarIcon: ({ focused }) =>
             route.name === "Store" ? (
@@ -78,9 +83,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderTopColor: "#EEE",
-    height: 68,
     paddingTop: 8,
-    paddingBottom: 10,
     elevation: 12,
     shadowColor: "#000",
     shadowOpacity: 0.08,

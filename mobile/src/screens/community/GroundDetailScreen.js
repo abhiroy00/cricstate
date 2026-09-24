@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  Dimensions,
   FlatList,
   Modal,
   ScrollView,
@@ -13,12 +14,14 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TEAL = "#0E9E9B";
-const TEAL_LIGHT = "#45B8AC";
 const RED = "#D71920";
 const STAR = "#F5A623";
-const PAGE = "#FFFFFF";
+const PAGE = "#F5F5F5";
 
-const TABS = ["About", "Photos", "Reviews"];
+const TABS = ["About", "Photos", "Reviews", "Matches", "Tournaments"];
+
+const { width: SCREEN_W } = Dimensions.get("window");
+const PHOTO_W = SCREEN_W - 72;
 
 function Stars({ value = 0, size = 16 }) {
   const full = Math.round(value);
@@ -38,18 +41,64 @@ const SAMPLE_REVIEWS = [
   { name: "Rohit Sharma", text: "Decent ground for weekend games. Parking is easy." },
 ];
 
-const SAMPLE_PHOTOS = ["🏟", "🏏", "🏆", "🌱", "🥇", "🏏"];
+const SAMPLE_MATCHES = [
+  ["Sunday Smashers vs North XI", "20-Sep-2026 • 20 Ov."],
+  ["Evening League - Match 8", "14-Sep-2026 • 16 Ov."],
+  ["Corporate Cup - Semi Final", "07-Sep-2026 • 20 Ov."],
+];
+
+const SAMPLE_TOURNAMENTS = [
+  ["Monsoon Cup 2026", "20-Sep-2026 • 12 teams"],
+  ["Weekend Bash", "07-Sep-2026 • 8 teams"],
+];
+
+const PHOTO_TILES = ["#7A9A5E", "#6B8A52", "#5F7D4C", "#8AA86B", "#74905A"];
+
+const FACILITY_ICONS = {
+  Umpires: "🧑‍⚖️",
+  Scorers: "📋",
+  "Drinking Water": "🥤",
+  Balls: "⚾",
+  "Turf Wicket": "🌱",
+  "Cement Wicket": "🧱",
+  "Dressing Room": "👕",
+  Parking: "🅿️",
+  Floodlights: "💡",
+  Nets: "🥅",
+  Canteen: "🍽",
+};
+
+function GroundDiagram() {
+  return (
+    <View style={styles.diagram}>
+      <View style={styles.diagramInner} />
+      <View style={styles.pitch} />
+      <Text style={styles.arrowUp}>↑</Text>
+      <Text style={styles.arrowLeft}>←</Text>
+      <Text style={styles.arrowRight}>→</Text>
+      <View style={styles.dimLabel}>
+        <Text style={styles.dimText}>55 - 60</Text>
+        <Text style={styles.dimText}>(Approx)</Text>
+      </View>
+    </View>
+  );
+}
 
 export default function GroundDetailScreen({ navigation, route }) {
   const { ground, city = "Delhi" } = route?.params || {};
   const [tab, setTab] = useState("About");
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const photoRef = useRef(null);
   const [myReviews, setMyReviews] = useState([]);
   const [rateOpen, setRateOpen] = useState(false);
   const [stars, setStars] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const insets = useSafeAreaInsets();
 
-  if (!ground) return null;
+  const photos =
+    ground?.photos?.length
+      ? ground.photos
+      : [0, 1, 2, 3, 4].map((i) => ({ bg: ground?.bg, emoji: ground?.emoji, key: `p-${i}` }));
 
   const hasRating = typeof ground.rating === "number";
   const rating = hasRating ? ground.rating : 0;
@@ -64,6 +113,18 @@ export default function GroundDetailScreen({ navigation, route }) {
     Share.share({ message: `${ground.name} - Cricket ground: ${ground.address}` }).catch(() => {});
   };
 
+  useEffect(() => {
+    if (!photos.length) return;
+    const t = setInterval(() => {
+      setPhotoIndex((i) => {
+        const n = (i + 1) % photos.length;
+        photoRef.current?.scrollToOffset({ offset: n * (PHOTO_W + 12), animated: true });
+        return n;
+      });
+    }, 3500);
+    return () => clearInterval(t);
+  }, [photos.length]);
+
   const submitReview = () => {
     if (stars < 1) return;
     setMyReviews((p) => [{ name: "You", stars, text: reviewText.trim() || "Good experience." }, ...p]);
@@ -72,66 +133,100 @@ export default function GroundDetailScreen({ navigation, route }) {
     setRateOpen(false);
   };
 
+  if (!ground) return null;
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
+      <View style={styles.header}>
+        <TouchableOpacity hitSlop={12} style={styles.backBtn} onPress={() => navigation?.goBack?.()}>
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {ground.name}
+        </Text>
+        <TouchableOpacity hitSlop={12} style={styles.backBtn} onPress={shareGround}>
+          <Text style={styles.shareIcon}>↗</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 24 + insets.bottom }}
       >
-        <View style={[styles.banner, { backgroundColor: ground.bg }]}>
-          <Text style={styles.bannerEmoji}>{ground.emoji}</Text>
-          <View style={styles.bannerShade} />
-          <View style={styles.topRow}>
-            <TouchableOpacity hitSlop={12} style={styles.backBtn} onPress={() => navigation?.goBack?.()}>
-              <Text style={styles.backArrow}>←</Text>
-            </TouchableOpacity>
-            <View style={{ flex: 1 }} />
-            <Text style={styles.views}>👥 {ground.views} Views</Text>
-            <TouchableOpacity hitSlop={12} style={styles.shareBtn} onPress={shareGround}>
-              <Text style={styles.shareIcon}>↗</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.dots}>
-            <View style={styles.dotOn} />
-            <View style={styles.dot} />
-          </View>
-          <View style={styles.infoOverlay}>
-            <Text style={styles.name} numberOfLines={2}>
-              {ground.name}
-            </Text>
-            <Text style={styles.address} numberOfLines={2}>
-              {ground.address}
-            </Text>
-            <View style={styles.feeRow}>
-              <Text style={styles.fee}>{ground.fee}</Text>
-              <View style={styles.feeRight}>
-                {hasRating && (
-                  <View style={styles.ratingPill}>
-                    <Text style={styles.ratingText}>{`${rating.toFixed(1)}/5`}</Text>
-                  </View>
-                )}
-                {hasRating && <Text style={styles.reviews}>{reviews} Review(s)</Text>}
-              </View>
+        <FlatList
+          ref={photoRef}
+          data={photos}
+          keyExtractor={(_, i) => String(i)}
+          horizontal
+          pagingEnabled
+          snapToInterval={PHOTO_W + 12}
+          decelerationRate="fast"
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.photoList}
+          onMomentumScrollEnd={(e) => {
+            const x = e.nativeEvent.contentOffset.x;
+            setPhotoIndex(Math.round(x / (PHOTO_W + 12)));
+          }}
+          renderItem={({ item }) => (
+            <View style={[styles.photo, { backgroundColor: item.bg || ground.bg }]}>
+              <Text style={styles.photoEmoji}>{item.emoji || ground.emoji}</Text>
             </View>
-          </View>
+          )}
+        />
+        <View style={styles.dots}>
+          {photos.map((_, i) => (
+            <View key={i} style={i === photoIndex ? styles.dotOn : styles.dot} />
+          ))}
         </View>
 
-        <View style={styles.actions}>
+        <View style={styles.titleBlock}>
+          <Text style={styles.name}>{ground.name}</Text>
+          <View style={styles.metaLine}>
+            {hasRating && (
+              <View style={styles.ratingPill}>
+                <Text style={styles.ratingPillText}>{`${rating.toFixed(1)}/5`}</Text>
+              </View>
+            )}
+            {hasRating && <Text style={styles.reviewsText}>{reviews} Review(s)</Text>}
+            {hasRating && <Text style={styles.metaSep}>|</Text>}
+            <Text style={styles.eye}>👁</Text>
+            <Text style={styles.viewsText}>{ground.views} Views</Text>
+          </View>
+          {!!ground.mapLink && (
+            <View style={styles.mapRow}>
+              <Text style={styles.pin}>📍</Text>
+              <Text style={styles.mapLink} numberOfLines={2}>
+                {ground.mapLink}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.btnRow}>
           <TouchableOpacity
-            style={styles.action}
+            style={styles.outlineBtn}
             activeOpacity={0.8}
             onPress={() => navigation?.navigate?.("DirectMessages")}
           >
-            <Text style={styles.actionIcon}>💬</Text>
-            <Text style={styles.actionText}>Message</Text>
+            <Text style={styles.outlineIcon}>💬</Text>
+            <Text style={styles.outlineText}>Message</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.action} activeOpacity={0.8} onPress={shareGround}>
-            <Text style={styles.actionIcon}>📍</Text>
-            <Text style={styles.actionText}>Location</Text>
+          <TouchableOpacity
+            style={styles.outlineBtn}
+            activeOpacity={0.8}
+            onPress={() => setTab("Matches")}
+          >
+            <Text style={styles.outlineIcon}>📊</Text>
+            <Text style={styles.outlineText}>Insights</Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.tabs}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsScroll}
+          contentContainerStyle={styles.tabs}
+        >
           {TABS.map((t) => (
             <TouchableOpacity
               key={t}
@@ -142,41 +237,61 @@ export default function GroundDetailScreen({ navigation, route }) {
               <Text style={[styles.tabText, tab === t && styles.tabTextOn]}>{t}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
 
         <View style={styles.page}>
           {tab === "About" && (
             <View>
-              <Text style={styles.secTitle}>Facilities:</Text>
-              {(ground.facilities || []).map((f) => (
-                <Text key={f} style={styles.bullet}>
-                  • {f}
-                </Text>
-              ))}
-              {(!ground.facilities || ground.facilities.length === 0) && (
-                <Text style={styles.plain}>-</Text>
-              )}
-              <Text style={[styles.secTitle, styles.secGap]}>Pitch type:</Text>
-              <Text style={styles.plain}>{ground.pitch || "-"}</Text>
-              <Text style={[styles.secTitle, styles.secGap]}>Matches played:</Text>
-              <Text style={styles.plain}>{ground.matches > 0 ? ground.matches : "-"}</Text>
-              <View style={styles.divider} />
-              <Text style={styles.secTitle}>Fees:</Text>
-              <Text style={styles.bullet}>• {ground.feesDetail || ground.fee}</Text>
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Ground info</Text>
+                <View style={styles.cardUnderline} />
+                <GroundDiagram />
+                <Text style={[styles.plain, styles.secGap]}>Available pitch type</Text>
+                <View style={styles.pitchRow}>
+                  {(ground.pitch ? String(ground.pitch).split(",") : []).map((p) => (
+                    <View key={p.trim()} style={styles.pitchPill}>
+                      <Text style={styles.pitchText}>{p.trim()}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+              <View style={[styles.card, styles.secGap]}>
+                <Text style={styles.cardTitle}>Facilities</Text>
+                <View style={styles.cardUnderline} />
+                <View style={styles.facRow}>
+                  {(ground.facilities || []).map((f) => (
+                    <View key={f} style={styles.facItem}>
+                      <Text style={styles.facIcon}>{FACILITY_ICONS[f] || "✓"}</Text>
+                      <Text style={styles.facLabel} numberOfLines={2}>
+                        {f}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                {(!ground.facilities || ground.facilities.length === 0) && (
+                  <Text style={styles.plain}>-</Text>
+                )}
+              </View>
+              <View style={[styles.card, styles.secGap]}>
+                <Text style={styles.secTitle}>Fees:</Text>
+                <Text style={styles.bullet}>• {ground.feesDetail || ground.fee}</Text>
+              </View>
             </View>
           )}
 
           {tab === "Photos" && (
             <FlatList
-              data={SAMPLE_PHOTOS}
-              keyExtractor={(_, i) => String(i)}
+              data={PHOTO_TILES}
+              keyExtractor={(_, i) => `ph-${i}`}
               numColumns={2}
               scrollEnabled={false}
-              columnWrapperStyle={{ gap: 10 }}
-              contentContainerStyle={{ gap: 10 }}
+              columnWrapperStyle={{ gap: 8 }}
+              contentContainerStyle={{ gap: 8 }}
               renderItem={({ item }) => (
-                <View style={[styles.photoBox, { backgroundColor: ground.bg }]}>
-                  <Text style={styles.photoEmoji}>{item}</Text>
+                <View style={[styles.gridPhoto, { backgroundColor: item }]}>
+                  <View style={styles.gridShade} />
+                  <View style={styles.gridRing} />
+                  <View style={styles.gridStrip} />
                 </View>
               )}
             />
@@ -193,7 +308,7 @@ export default function GroundDetailScreen({ navigation, route }) {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View>
+              <View style={styles.card}>
                 <View style={styles.revHead}>
                   <Text style={styles.revBig}>{avgRating.toFixed(1)}</Text>
                   <View>
@@ -222,6 +337,38 @@ export default function GroundDetailScreen({ navigation, route }) {
                 </View>
               </View>
             ))}
+
+          {tab === "Matches" && (
+            <View style={styles.card}>
+              {SAMPLE_MATCHES.map(([m, d]) => (
+                <View key={m} style={styles.rowItem}>
+                  <Text style={styles.rowBall}>🏏</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.rowTitle}>{m}</Text>
+                    <Text style={styles.rowMeta}>
+                      {d} • {ground.location || city}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {tab === "Tournaments" && (
+            <View style={styles.card}>
+              {SAMPLE_TOURNAMENTS.map(([m, d]) => (
+                <View key={m} style={styles.rowItem}>
+                  <Text style={styles.rowBall}>🏆</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.rowTitle}>{m}</Text>
+                    <Text style={styles.rowMeta}>
+                      {d} • {ground.location || city}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -270,47 +417,135 @@ export default function GroundDetailScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#141414" },
-  banner: { height: 300 },
-  bannerEmoji: { fontSize: 110, textAlign: "center", marginTop: 30 },
-  bannerShade: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.35)" },
-  topRow: { position: "absolute", top: 0, left: 0, right: 0, flexDirection: "row", alignItems: "center", paddingHorizontal: 8, paddingVertical: 6 },
+  safe: { flex: 1, backgroundColor: "#fff" },
+  header: {
+    backgroundColor: RED,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
   backBtn: { padding: 6 },
-  backArrow: { color: "#fff", fontSize: 30, fontWeight: "400" },
-  views: { color: "#fff", fontSize: 17, marginRight: 8 },
-  shareBtn: { padding: 8 },
+  backArrow: { color: "#fff", fontSize: 26, fontWeight: "700" },
+  headerTitle: { color: "#fff", fontSize: 21, fontWeight: "700", flex: 1, textAlign: "center" },
   shareIcon: { color: "#fff", fontSize: 26, fontWeight: "600" },
-  dots: { position: "absolute", top: 118, left: 0, right: 0, flexDirection: "row", justifyContent: "center", gap: 8 },
-  dotOn: { width: 14, height: 14, borderRadius: 7, backgroundColor: "#fff", opacity: 0.9 },
-  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: "#fff", opacity: 0.5, marginTop: 2 },
-  infoOverlay: { position: "absolute", left: 16, right: 16, bottom: 12 },
-  name: { color: "#fff", fontSize: 25, fontWeight: "500" },
-  address: { color: TEAL_LIGHT, fontSize: 16, marginTop: 2, lineHeight: 21 },
-  feeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10 },
-  fee: { color: "#fff", fontSize: 21 },
-  feeRight: { flexDirection: "row", alignItems: "center", gap: 10 },
-  ratingPill: { borderWidth: 1.2, borderColor: "#fff", borderRadius: 14, paddingHorizontal: 12, paddingVertical: 3 },
-  ratingText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  reviews: { color: "#fff", fontSize: 16 },
-  actions: { flexDirection: "row", backgroundColor: "#141414", paddingVertical: 14 },
-  action: { flex: 1, alignItems: "center", gap: 6 },
-  actionIcon: { fontSize: 30, color: "#fff" },
-  actionText: { color: "#fff", fontSize: 17 },
-  tabs: { flexDirection: "row", backgroundColor: "#fff" },
-  tab: { flex: 1, alignItems: "center", paddingVertical: 14, borderBottomWidth: 3, borderBottomColor: "transparent" },
+  photoList: { paddingHorizontal: 16, paddingTop: 14, gap: 12 },
+  photo: {
+    width: PHOTO_W,
+    height: 210,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  photoEmoji: { fontSize: 84 },
+  dots: { flexDirection: "row", justifyContent: "center", gap: 8, marginTop: 10 },
+  dotOn: { width: 12, height: 12, borderRadius: 6, backgroundColor: RED },
+  dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: "#BDBDBD", marginTop: 1.5 },
+  titleBlock: { paddingHorizontal: 18, paddingTop: 12 },
+  name: { fontSize: 25, fontWeight: "400", color: "#111" },
+  metaLine: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" },
+  ratingPill: { backgroundColor: STAR, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 4 },
+  ratingPillText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  reviewsText: { fontSize: 16, color: TEAL },
+  metaSep: { color: "#DDD", fontSize: 18 },
+  eye: { fontSize: 20, color: "#8A8A8A" },
+  viewsText: { fontSize: 16, color: "#555" },
+  mapRow: { flexDirection: "row", marginTop: 10, gap: 8 },
+  pin: { fontSize: 26 },
+  mapLink: { flex: 1, fontSize: 16, color: TEAL, lineHeight: 22 },
+  btnRow: { flexDirection: "row", paddingHorizontal: 18, marginTop: 16, gap: 12 },
+  outlineBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.4,
+    borderColor: TEAL,
+    borderRadius: 8,
+    paddingVertical: 12,
+    gap: 8,
+    backgroundColor: "#fff",
+  },
+  outlineIcon: { fontSize: 22, color: TEAL },
+  outlineText: { fontSize: 18, color: TEAL, fontWeight: "500" },
+  tabsScroll: { marginTop: 18, backgroundColor: "#fff" },
+  tabs: { flexDirection: "row", paddingHorizontal: 8 },
+  tab: { paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 3, borderBottomColor: "transparent" },
   tabOn: { borderBottomColor: RED },
-  tabText: { fontSize: 17, color: "#8A8A8A" },
+  tabText: { fontSize: 18, color: "#8A8A8A" },
   tabTextOn: { color: "#111", fontWeight: "500" },
-  page: { backgroundColor: PAGE, padding: 22, minHeight: 320 },
-  secTitle: { fontSize: 21, color: "#111", fontWeight: "400" },
-  secGap: { marginTop: 24 },
-  bullet: { fontSize: 18, color: "#333", marginTop: 6 },
-  plain: { fontSize: 18, color: "#333", marginTop: 6 },
-  divider: { height: 1, backgroundColor: "#E0E0E0", marginVertical: 24 },
+  page: { backgroundColor: PAGE, padding: 14, minHeight: 320 },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 18,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  cardTitle: { fontSize: 21, color: "#111" },
+  cardUnderline: { width: 62, height: 3, backgroundColor: TEAL, marginTop: 6, borderRadius: 2 },
+  pitchRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 10 },
+  pitchPill: { backgroundColor: "#F0F0F0", borderRadius: 18, paddingHorizontal: 20, paddingVertical: 9 },
+  pitchText: { fontSize: 16, color: "#333" },
+  facRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 14 },
+  facItem: { width: "25%", alignItems: "center", paddingVertical: 8 },
+  facIcon: { fontSize: 44 },
+  facLabel: { fontSize: 14, color: "#8A8A8A", marginTop: 8, textAlign: "center" },
+  diagram: {
+    height: 230,
+    backgroundColor: "#4CAF50",
+    borderRadius: 115,
+    marginTop: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  diagramInner: {
+    position: "absolute",
+    left: 18,
+    right: 18,
+    top: 14,
+    bottom: 14,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.9)",
+    borderRadius: 999,
+  },
+  pitch: { width: 48, height: 120, backgroundColor: "#D9B98A", borderRadius: 4 },
+  arrowUp: { position: "absolute", top: 30, color: "#fff", fontSize: 34, fontWeight: "700" },
+  arrowLeft: { position: "absolute", left: 44, bottom: 40, color: "#fff", fontSize: 30, fontWeight: "700" },
+  arrowRight: { position: "absolute", right: 44, bottom: 40, color: "#fff", fontSize: 30, fontWeight: "700" },
+  dimLabel: { position: "absolute", bottom: 24, backgroundColor: "rgba(0,0,0,0.45)", borderRadius: 6, paddingHorizontal: 18, paddingVertical: 6, alignItems: "center" },
+  dimText: { color: "#fff", fontSize: 17 },
+  secTitle: { fontSize: 19, color: "#111", fontWeight: "500" },
+  secGap: { marginTop: 20 },
+  bullet: { fontSize: 16, color: "#333", marginTop: 6 },
+  plain: { fontSize: 16, color: "#333", marginTop: 6 },
   starRow: { flexDirection: "row", gap: 2 },
   star: { fontWeight: "700" },
-  photoBox: { flex: 1, height: 150, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  photoEmoji: { fontSize: 56 },
+  gridPhoto: {
+    flex: 1,
+    height: 190,
+    borderRadius: 6,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  gridShade: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.18)" },
+  gridRing: {
+    position: "absolute",
+    left: 14,
+    right: 14,
+    top: 22,
+    bottom: 22,
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.85)",
+    borderRadius: 999,
+  },
+  gridStrip: { width: 30, height: 90, backgroundColor: "rgba(217,185,138,0.9)", borderRadius: 3 },
   revHead: { flexDirection: "row", alignItems: "center", gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
   revBig: { fontSize: 42, fontWeight: "700", color: "#111" },
   revCountDark: { fontSize: 13, color: "#8A8A8A", marginTop: 4 },
@@ -322,6 +557,10 @@ const styles = StyleSheet.create({
   centerWrap: { alignItems: "center", paddingVertical: 16 },
   writeBtn: { backgroundColor: "#0E6B62", borderRadius: 8, paddingHorizontal: 34, paddingVertical: 14, marginTop: 18 },
   writeText: { color: "#fff", fontSize: 18, fontWeight: "500" },
+  rowItem: { flexDirection: "row", alignItems: "center", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#F5F5F5", gap: 12 },
+  rowBall: { fontSize: 28 },
+  rowTitle: { fontSize: 15, fontWeight: "600", color: "#111" },
+  rowMeta: { fontSize: 13, color: "#8A8A8A", marginTop: 2 },
   rateDim: { flex: 1, backgroundColor: "rgba(0,0,0,0.55)", alignItems: "center", justifyContent: "center", padding: 32 },
   rateBox: { backgroundColor: "#fff", borderRadius: 4, width: "100%", overflow: "hidden" },
   ratePad: { padding: 22 },
