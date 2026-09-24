@@ -13,6 +13,8 @@ import AcademiesScreen from "../screens/community/AcademiesScreen";
 import AcademyDetailScreen from "../screens/community/AcademyDetailScreen";
 import GroundsScreen from "../screens/community/GroundsScreen";
 import GroundDetailScreen from "../screens/community/GroundDetailScreen";
+import BoxCricketScreen from "../screens/community/BoxCricketScreen";
+import BoxDetailScreen from "../screens/community/BoxDetailScreen";
 import ProfileDetailScreen from "../screens/community/ProfileDetailScreen";
 import RoleBoardScreen from "../screens/community/RoleBoardScreen";
 import AddRoleScreen from "../screens/community/AddRoleScreen";
@@ -36,6 +38,8 @@ export default function CommunityStack() {
       <Stack.Screen name="AcademyDetail" component={AcademyDetailScreen} />
       <Stack.Screen name="Grounds" component={GroundsScreen} />
       <Stack.Screen name="GroundDetail" component={GroundDetailScreen} />
+      <Stack.Screen name="BoxCricket" component={BoxCricketScreen} />
+      <Stack.Screen name="BoxDetail" component={BoxDetailScreen} />
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />
       <Stack.Screen name="RoleBoard" component={RoleBoardScreen} />

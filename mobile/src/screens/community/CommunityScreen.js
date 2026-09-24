@@ -323,6 +323,10 @@ export default function CommunityScreen({ navigation }) {
       navigation?.navigate?.("Grounds", { city });
       return;
     }
+    if (tile.key === "box") {
+      navigation?.navigate?.("BoxCricket", { city });
+      return;
+    }
     navigation?.navigate?.("CommunityList", {
       category: tile.key,
       title: tile.label,
