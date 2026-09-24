@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const TEAL = "#199A8E";
 const TEAL_DARK = "#0E6B64";
-const RED = "#C81E1E";
+const RED = "#EA580C";
 
 const PLANS = [
   { key: "player-highlights", title: "Player\nhighlights", sub: "", oldPrice: "₹49", price: "₹29" },

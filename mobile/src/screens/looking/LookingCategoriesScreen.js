@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 
 const TILES = [
   { label: "Teams for my tournament", emoji: "👥", formKey: "tournament-teams" },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   adBox: {
     marginHorizontal: 12,
     borderRadius: 12,
-    backgroundColor: "#7A0E14",
+    backgroundColor: "#9A3412",
     padding: 20,
     alignItems: "center",
   },

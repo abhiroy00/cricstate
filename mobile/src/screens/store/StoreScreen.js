@@ -27,6 +27,7 @@ import ProductCard from "./ProductCard";
 import ProductDetailModal from "./ProductDetailModal";
 import { useCart } from "./StoreCartContext";
 import StoreMenuDrawer from "./StoreMenuDrawer";
+import AppLogo from "../../components/AppLogo";
 
 function HeroBanner({ item, onPress }) {
   return (
@@ -252,9 +253,7 @@ export default function StoreScreen({ navigation }) {
           >
             <Text style={styles.headerIcon}>←</Text>
           </TouchableOpacity>
-          <View style={styles.logoWrap}>
-            <Text style={styles.logoEmoji}>🏏</Text>
-          </View>
+          <AppLogo size={30} />
           <Text style={styles.headerTitle}>Store</Text>
         </View>
         <View style={styles.headerRight}>

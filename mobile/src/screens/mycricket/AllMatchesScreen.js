@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const RED = "#C81E1E";
+const RED = "#EA580C";
 const TEAL = "#199A8E";
 
 const TABS = [
@@ -640,7 +640,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   pmBadgeLive: {
-    backgroundColor: "#E31E24",
+    backgroundColor: "#EA580C",
   },
   pmBadgeResult: {
     backgroundColor: "#222",

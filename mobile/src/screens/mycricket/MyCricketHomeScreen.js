@@ -9,6 +9,7 @@ import TeamsSection from "./sections/TeamsSection";
 import TournamentsSection from "./sections/TournamentsSection";
 import FilterSheet from "../../components/FilterSheet";
 import SearchOverlay from "../../components/SearchOverlay";
+import AppLogo from "../../components/AppLogo";
 
 const SECTIONS = [
   { key: "MATCHES", label: "Matches" },
@@ -26,7 +27,7 @@ const SECTION_COMPONENTS = {
   HIGHLIGHTS: HighlightsSection,
 };
 
-const RED = "#C81E1E";
+const RED = "#EA580C";
 const TEAL = "#199A8E";
 
 function AppHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterCount }) {
@@ -36,9 +37,7 @@ function AppHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterCount }
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
           <Text style={styles.headerIcon}>☰</Text>
         </TouchableOpacity>
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoBall}>🏏</Text>
-        </View>
+        <AppLogo />
         <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
@@ -173,8 +172,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
   },
   proBtn: {
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.85)",
+    backgroundColor: TEAL,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0FA3A3";
 
 const STREAMERS = [
@@ -33,7 +33,7 @@ const STREAMERS = [
     ratingNum: 4.6,
     reviews: 7,
     emoji: "📹",
-    bg: "#7A0E14",
+    bg: "#9A3412",
     city: "New Delhi",
     live: false,
   },

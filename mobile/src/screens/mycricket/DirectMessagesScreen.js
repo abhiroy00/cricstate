@@ -1,7 +1,7 @@
 import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const RED = "#C81E1E";
+const RED = "#EA580C";
 const TEAL = "#199A8E";
 const GREY = "#9AA0A0";
 

@@ -19,9 +19,9 @@ import { fetchMyProfile } from "../../services/profileService";
 import { clearTokens } from "../../utils/storage";
 import { colors } from "../../utils/theme";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0FA3A3";
-const PINK = "#F9E9E9";
+const PINK = "#FEF3EB";
 
 function MiniJersey({ color, accent, name, no }) {
   return (

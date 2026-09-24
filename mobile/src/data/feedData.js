@@ -119,7 +119,7 @@ export const CLUB_POSTS = [
     author: "CricHeroes Official",
     verified: true,
     avatarEmoji: "🏏",
-    avatarBg: "#D71920",
+    avatarBg: "#EA580C",
     time: "1 week ago",
     text: "What's the story behind your jersey number?",
     reactions: 499,

@@ -6,7 +6,7 @@ const BG = "#141414";
 const CARD = "#1F2A2E";
 const TEAL = "#199A8E";
 const TEAL_BRIGHT = "#1FA89B";
-const RED = "#E31E24";
+const RED = "#EA580C";
 
 const PRIVILEGES = [
   { icon: "📊", text: "Track your\nprogress" },

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const RED = "#C81E1E";
+const RED = "#EA580C";
 const TEAL = "#1A9A8E";
 
 const TABS = [

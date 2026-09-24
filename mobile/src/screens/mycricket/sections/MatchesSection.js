@@ -14,7 +14,7 @@ import { extractErrorMessage } from "../../../services/api";
 import { listMatches } from "../../../services/matchService";
 import { AllMatchesBody } from "../AllMatchesScreen";
 
-const RED = "#C81E1E";
+const RED = "#EA580C";
 const TEAL = "#199A8E";
 const PILL_BG = "#E9E7E7";
 
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
   adTag: {
     fontSize: 10,
     fontWeight: "800",
-    color: "#C81E1E",
+    color: "#EA580C",
   },
   adTitle: {
     fontSize: 11,
@@ -983,7 +983,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   mLiveBadge: {
-    backgroundColor: "#E31E24",
+    backgroundColor: "#EA580C",
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 3,

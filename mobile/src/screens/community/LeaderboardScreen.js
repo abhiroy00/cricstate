@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0E9E9B";
 const INK = "#1A1A1A";
 const GREY = "#8A8A8A";

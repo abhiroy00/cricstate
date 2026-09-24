@@ -16,6 +16,7 @@ import { DrawerActions } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
 import { useLooking } from "./LookingContext";
 import FilterSheet from "../../components/FilterSheet";
+import AppLogo from "../../components/AppLogo";
 
 // FilterSheet TYPE -> post type mapping (unmapped sheet options are ignored)
 const SHEET_TYPE_MAP = {
@@ -26,7 +27,7 @@ const SHEET_TYPE_MAP = {
   Scorer: ["Scorer"],
 };
 
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0FA3A3";
 
 const FILTER_CHIPS = ["Opponent", "Team to join", "Player", "Umpire"];
@@ -38,9 +39,7 @@ function LookingHeader({ onMenu, onTarget, onMessage, onFilter, onPro, filterCou
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
           <Text style={styles.headerIcon}>☰</Text>
         </TouchableOpacity>
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoBall}>🏏</Text>
-        </View>
+        <AppLogo />
         <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
@@ -376,8 +375,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
   },
   proBtn: {
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.85)",
+    backgroundColor: TEAL,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,

@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../hooks/useAuth";
 import { useLooking } from "./LookingContext";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0FA3A3";
 const DEFAULT_WHERE = "New Bongaigaon Railway Colony";
 

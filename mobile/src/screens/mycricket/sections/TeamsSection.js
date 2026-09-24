@@ -14,7 +14,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { extractErrorMessage } from "../../../services/api";
 import { listTeams } from "../../../services/teamService";
 
-const RED = "#C81E1E";
+const RED = "#EA580C";
 const TEAL = "#199A8E";
 const PILL_BG = "#E9E7E7";
 

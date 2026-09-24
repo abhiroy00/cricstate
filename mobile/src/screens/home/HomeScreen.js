@@ -15,9 +15,10 @@ import { DrawerActions } from "@react-navigation/native";
 import { useAuth } from "../../hooks/useAuth";
 import { CLUB_POSTS, CONTACT_MATCHES, CRICKETERS } from "../../data/feedData";
 import SearchOverlay from "../../components/SearchOverlay";
+import AppLogo from "../../components/AppLogo";
 
-const RED = "#D71920";
-const RED_DARK = "#B3121A";
+const RED = "#EA580C";
+const RED_DARK = "#C2410C";
 const TEAL = "#0FA3A3";
 const ORANGE = "#F5A623";
 const GREY_BG = "#F2F2F2";
@@ -54,9 +55,7 @@ function Header({ onSearch, onBell, onInbox, onMenu, onPro, showBellDot = true }
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
           <Text style={styles.headerIcon}>☰</Text>
         </TouchableOpacity>
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoBall}>🏏</Text>
-        </View>
+        <AppLogo />
         <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
@@ -98,10 +97,12 @@ function TopTabs({ active, onChange }) {
         onPress={() => onChange("pro")}
         activeOpacity={0.8}
       >
-        <Text style={styles.tabText}>
-          <Text style={styles.proPill}>PRO</Text>
-          <Text> Club</Text>
-        </Text>
+        <View style={styles.clubTab}>
+          <View style={styles.proPill}>
+            <Text style={styles.proPillText}>PRO</Text>
+          </View>
+          <Text style={styles.tabText}> Club</Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -843,8 +844,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
   },
   proBtn: {
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.85)",
+    backgroundColor: TEAL,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -893,10 +893,19 @@ const styles = StyleSheet.create({
   },
   proPill: {
     backgroundColor: TEAL,
+    borderRadius: 9,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    overflow: "hidden",
+  },
+  proPillText: {
     color: "#fff",
     fontSize: 13,
     fontWeight: "800",
-    borderRadius: 8,
+  },
+  clubTab: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   /* Follow prompt */
@@ -1604,7 +1613,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   posterBox: {
-    backgroundColor: "#7A0E14",
+    backgroundColor: "#9A3412",
     borderRadius: 10,
     marginTop: 12,
     padding: 16,

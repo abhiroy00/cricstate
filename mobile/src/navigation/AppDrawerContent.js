@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   profile: {
-    backgroundColor: "#5A0E14",
+    backgroundColor: "#7C2D12",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,

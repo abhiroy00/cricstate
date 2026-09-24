@@ -13,9 +13,10 @@ import { DrawerActions } from "@react-navigation/native";
 
 import FilterSheet from "../../components/FilterSheet";
 import SearchOverlay from "../../components/SearchOverlay";
+import AppLogoImage from "../../components/AppLogo";
 
 // Screenshot se nikale exact colours
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0E9E9B";
 const INK = "#111111";
 const CARD_BORDER = "#EDEDED";
@@ -257,9 +258,7 @@ function CommunityHeader({ onMenu, onSearch, onMessage, onFilter, onPro, filterC
         <TouchableOpacity hitSlop={12} style={styles.headerBtn} onPress={onMenu}>
           <Text style={styles.headerIcon}>☰</Text>
         </TouchableOpacity>
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoBall}>🏏</Text>
-        </View>
+        <AppLogoImage />
         <TouchableOpacity activeOpacity={0.85} style={styles.proBtn} onPress={onPro}>
           <Text style={styles.proBtnText}>PRO @ ₹199</Text>
         </TouchableOpacity>
@@ -471,8 +470,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   proBtn: {
-    borderWidth: 1.4,
-    borderColor: "rgba(255,255,255,0.9)",
+    backgroundColor: TEAL,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 7,

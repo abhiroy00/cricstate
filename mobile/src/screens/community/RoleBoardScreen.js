@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FilterSheet from "../../components/FilterSheet";
 import { ROLES } from "./roleData";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0FA3A3";
 const DEFAULT_SCOPE = "New Bongaigaon Railway Colony - September";
 

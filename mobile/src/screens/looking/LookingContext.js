@@ -43,7 +43,7 @@ const LOOKING_POSTS = [
     active: true,
     pro: false,
     avatarEmoji: "🧑🏿",
-    avatarBg: "#7A0E14",
+    avatarBg: "#9A3412",
     need: "Umpire",
     needDetail: "Weekend league",
     line: "Imran (District Premier League) is looking for an Umpire (Weekend league) for official matches.",

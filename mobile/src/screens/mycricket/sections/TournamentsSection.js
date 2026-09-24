@@ -14,7 +14,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { extractErrorMessage } from "../../../services/api";
 import { listTournaments } from "../../../services/tournamentService";
 
-const RED = "#C81E1E";
+const RED = "#EA580C";
 const TEAL = "#199A8E";
 const PILL_BG = "#E9E7E7";
 
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
     zIndex: 3,
   },
   statusOngoing: {
-    backgroundColor: "#E31E24",
+    backgroundColor: "#EA580C",
   },
   statusOther: {
     backgroundColor: "#616161",

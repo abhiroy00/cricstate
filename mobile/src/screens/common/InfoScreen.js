@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 
 const BODIES = {
   "CricHeroes Awards":

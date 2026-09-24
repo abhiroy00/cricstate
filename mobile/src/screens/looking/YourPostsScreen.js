@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useLooking } from "./LookingContext";
 
-const RED = "#D71920";
+const RED = "#EA580C";
 const TEAL = "#0FA3A3";
 
 function DottedArrow() {
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#C6F6D5",
   },
   off: {
-    backgroundColor: "#FED7D7",
+    backgroundColor: "#FFE4CC",
   },
   statusText: {
     fontSize: 12,
