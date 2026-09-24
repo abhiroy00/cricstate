@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import ComingSoonScreen from "../screens/common/ComingSoonScreen";
 import HomeScreen from "../screens/home/HomeScreen";
+import StoreStack from "./StoreStack";
 import { colors } from "../utils/theme";
 import MyCricketStack from "./MyCricketStack";
 
@@ -30,7 +31,7 @@ export default function MainTabs() {
       <Tab.Screen name="Looking" component={ComingSoonScreen} initialParams={{ title: "Looking" }} />
       <Tab.Screen name="My Cricket" component={MyCricketStack} />
       <Tab.Screen name="Community" component={ComingSoonScreen} initialParams={{ title: "Community" }} />
-      <Tab.Screen name="Store" component={ComingSoonScreen} initialParams={{ title: "Store" }} />
+      <Tab.Screen name="Store" component={StoreStack} />
     </Tab.Navigator>
   );
 }
