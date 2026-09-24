@@ -3,16 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-<<<<<<< Updated upstream
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "start": "expo start",
-=======
     "start": "expo start",
     "start:clear": "expo start -c",
     "android": "expo run:android",
     "ios": "expo run:ios",
->>>>>>> Stashed changes
     "test": "jest"
   },
   "dependencies": {
