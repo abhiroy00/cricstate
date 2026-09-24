@@ -3,6 +3,7 @@ import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import ComingSoonScreen from "../screens/common/ComingSoonScreen";
 import CommunityStack from "./CommunityStack";
 import HomeStack from "./HomeStack";
 import LookingStack from "./LookingStack";

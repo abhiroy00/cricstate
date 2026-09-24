@@ -5,6 +5,8 @@ import CommunityListScreen from "../screens/community/CommunityListScreen";
 import ScorersScreen from "../screens/community/ScorersScreen";
 import UmpiresScreen from "../screens/community/UmpiresScreen";
 import ProfileDetailScreen from "../screens/community/ProfileDetailScreen";
+import RoleBoardScreen from "../screens/community/RoleBoardScreen";
+import AddRoleScreen from "../screens/community/AddRoleScreen";
 import DirectMessagesScreen from "../screens/mycricket/DirectMessagesScreen";
 
 const Stack = createNativeStackNavigator();
@@ -17,6 +19,8 @@ export default function CommunityStack() {
       <Stack.Screen name="Umpires" component={UmpiresScreen} />
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />
+      <Stack.Screen name="RoleBoard" component={RoleBoardScreen} />
+      <Stack.Screen name="AddRole" component={AddRoleScreen} />
       <Stack.Screen name="DirectMessages" component={DirectMessagesScreen} />
     </Stack.Navigator>
   );

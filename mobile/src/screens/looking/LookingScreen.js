@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   FlatList,
   Linking,
@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -31,8 +30,6 @@ const RED = "#D71920";
 const TEAL = "#0FA3A3";
 
 const FILTER_CHIPS = ["Opponent", "Team to join", "Player", "Umpire"];
-
-const POST_TYPES = ["Player", "Opponent", "Umpire", "Scorer"];
 
 function LookingHeader({ onMenu, onTarget, onMessage, onFilter, filterCount }) {
   return (
@@ -138,9 +135,9 @@ function Sheet({ visible, onClose, children }) {
   );
 }
 
-export default function LookingScreen({ navigation, route }) {
+export default function LookingScreen({ navigation }) {
   const { user } = useAuth();
-  const { posts, addPost } = useLooking();
+  const { posts } = useLooking();
   const [chip, setChip] = useState(null);
   const [myOnly, setMyOnly] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
@@ -149,22 +146,7 @@ export default function LookingScreen({ navigation, route }) {
     types: [],
     balls: [],
   });
-  const [postOpen, setPostOpen] = useState(false);
   const [contactFor, setContactFor] = useState(null);
-  const [draftType, setDraftType] = useState("Player");
-  const [draftNeed, setDraftNeed] = useState("");
-  const [draftDetail, setDraftDetail] = useState("");
-
-  // Categories grid se aayi choice -> composer kholo
-  const composeParam = route?.params?.compose;
-  useEffect(() => {
-    if (composeParam) {
-      setDraftType(composeParam.type || "Player");
-      setDraftNeed(composeParam.need || "");
-      setPostOpen(true);
-      navigation.setParams({ compose: null });
-    }
-  }, [composeParam, navigation]);
 
   const firstName = user?.full_name?.split(" ")?.[0] || "You";
   const sheetCount =
@@ -198,32 +180,6 @@ export default function LookingScreen({ navigation, route }) {
     setChip(null);
     setMyOnly(false);
     setSheetFilter({ locations: [], types: [], balls: [] });
-  };
-
-  const submitPost = () => {
-    const need = draftNeed.trim() || draftType;
-    const detail = draftDetail.trim() || "Open";
-    const name = user?.full_name || "Your team";
-    addPost({
-      author: firstName,
-      team: "My Team",
-      mine: true,
-      pro: false,
-      avatarEmoji: "🧑🏽",
-      avatarBg: "#3A3A3A",
-      need: draftType === "Opponent" ? "Opponent" : need,
-      needDetail: detail,
-      line: `${name} is looking for a ${need} (${detail}) to join his team.`,
-      bullets: [`${need} (${detail})`],
-      time: "Just now",
-      km: "-- KM",
-      type: draftType,
-    });
-    setDraftNeed("");
-    setDraftDetail("");
-    setDraftType("Player");
-    setPostOpen(false);
-    setMyOnly(true);
   };
 
   const contact = (kind, item) => {
@@ -336,50 +292,6 @@ export default function LookingScreen({ navigation, route }) {
           <LookingCard item={item} onContact={setContactFor} />
         )}
       />
-
-      {/* Post composer */}
-      <Sheet visible={postOpen} onClose={() => setPostOpen(false)}>
-        <Text style={styles.sheetTitle}>Post what you're looking for</Text>
-        <Text style={styles.sheetLabel}>I need</Text>
-        <View style={styles.typeRow}>
-          {POST_TYPES.map((t) => (
-            <TouchableOpacity
-              key={t}
-              style={[styles.chip, draftType === t && styles.chipOn]}
-              onPress={() => setDraftType(t)}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  draftType === t && styles.chipTextOn,
-                ]}
-              >
-                {t}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. Bowler, Opponent team, Umpire"
-          value={draftNeed}
-          onChangeText={setDraftNeed}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. Right-arm medium, T20 Sunday"
-          value={draftDetail}
-          onChangeText={setDraftDetail}
-        />
-        <TouchableOpacity
-          style={styles.submitBtn}
-          activeOpacity={0.85}
-          onPress={submitPost}
-        >
-          <Text style={styles.submitText}>Post</Text>
-        </TouchableOpacity>
-      </Sheet>
 
       {/* Contact sheet */}
       <Sheet visible={!!contactFor} onClose={() => setContactFor(null)}>
