@@ -17,6 +17,7 @@ import { useDrawerStatus } from "@react-navigation/drawer";
 
 import { useAuth } from "../hooks/useAuth";
 import { DrawerProfileGradient } from "../components/DreamHeader";
+import { DRAWER_ITEMS, DRAWER_MORE_ITEMS } from "../utils/drawerItems";
 
 const TEAL = "#00A651";
 const RED = "#E01A22";
@@ -31,13 +32,6 @@ const LANG_KEY = "@cricstate:lang";
 const RATE_URL = "https://play.google.com/store";
 const SHARE_MESSAGE =
   "Play cricket the smart way with CricState — scoring, tournaments, store and more!";
-
-const SOCIALS = {
-  instagram: "https://www.instagram.com/",
-  youtube: "https://www.youtube.com/",
-  facebook: "https://www.facebook.com/",
-  x: "https://x.com/",
-};
 
 function Row({ icon, label, badge, onPress, small, highlight }) {
   return (
@@ -167,6 +161,83 @@ export default function AppDrawerContent({ navigation }) {
     );
   };
 
+  // Share / Rate / App-code divider ke neeche (pehle jaisa look)
+  const ACTION_KEYS = new Set(["share", "rate", "app-code"]);
+  const mainItems = DRAWER_ITEMS.filter((i) => !ACTION_KEYS.has(i.key));
+  const actionItems = DRAWER_ITEMS.filter((i) => ACTION_KEYS.has(i.key));
+
+  // Har drawer item apne related section/link pe khule — single dispatcher
+  // type: drawer | tab | info | action | modal | external (drawerItems.js)
+  const handleItem = (item) => {
+    if (!item) return;
+    switch (item.type) {
+      case "drawer":
+        go(item.target, item.params);
+        break;
+      case "tab":
+        goMain(item.tab, item.target, item.params);
+        break;
+      case "info":
+        goInfo(item.title || item.label);
+        break;
+      case "external":
+        openUrl(item.url, item.label);
+        break;
+      case "modal":
+        if (item.action === "language") setLangOpen(true);
+        break;
+      case "action":
+      default:
+        if (item.action === "share" || item.key === "share") shareApp();
+        else if (item.action === "rate" || item.key === "rate") rateUs();
+        else if (item.action === "appCode" || item.key === "app-code") showAppCode();
+        else if (item.target) go(item.target, item.params);
+        break;
+    }
+  };
+
+  const renderItem = (item, small = false) => {
+    if (item.key === "language") {
+      return (
+        <TouchableOpacity
+          key={item.key}
+          style={[styles.row, styles.rowSmall]}
+          activeOpacity={0.7}
+          onPress={() => setLangOpen(true)}
+        >
+          <View style={[styles.iconBox, styles.iconBoxSmall]}>
+            <Text style={[styles.rowIcon, styles.rowIconSmall]}>{item.icon}</Text>
+          </View>
+          <Text style={[styles.rowLabel, styles.rowLabelSmall]} numberOfLines={1}>
+            {item.label} ({lang})
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+    if (item.key === "app-code") {
+      return (
+        <Row
+          key={item.key}
+          small={small}
+          icon={item.icon}
+          label={`${item.label}: ${APP_CODE}`}
+          onPress={() => handleItem(item)}
+        />
+      );
+    }
+    return (
+      <Row
+        key={item.key}
+        small={small}
+        icon={item.icon}
+        label={item.label}
+        badge={item.badge}
+        highlight={item.key === "pro"}
+        onPress={() => handleItem(item)}
+      />
+    );
+  };
+
   return (
     <View style={styles.wrap}>
       <DrawerProfileGradient style={styles.profile}>
@@ -214,33 +285,11 @@ export default function AppDrawerContent({ navigation }) {
       </DrawerProfileGradient>
 
       <ScrollView ref={listRef} showsVerticalScrollIndicator={false}>
-        {/* PRO membership */}
-        <Row highlight icon="🏅" label="PRO at ₹199 (No autopay)" onPress={() => go("ProBenefits")} />
-        {/* Tournament create */}
-        <Row icon="🏆" label="Add a Tournament/Series" badge="Free" onPress={() => goMain("My Cricket", "CreateTournament")} />
-        {/* Match scoring */}
-        <Row icon="⏱" label="Start A Match" badge="Free" onPress={() => goMain("My Cricket", "StartMatch")} />
-        {/* Live streamers directory */}
-        <Row icon="🎥" label="Go Live" onPress={() => goMain("Looking", "LiveStreamers")} />
-        {/* My Cricket home */}
-        <Row icon="🏏" label="My Cricket" onPress={() => goMain("My Cricket", "MyCricketHome")} />
-        {/* Stats section */}
-        <Row icon="📊" label="My Performance" onPress={() => goMain("My Cricket", "MyCricketHome", { section: "STATS" })} />
-        {/* Store */}
-        <Row icon="🛒" label="CricHeroes Store" onPress={() => goMain("Store", "StoreHome")} />
-        {/* Leaderboard */}
-        <Row icon="🏵" label="Leaderboards" onPress={() => goMain("Community", "RoleBoard", { role: "scorers" })} />
-        {/* Static info pages */}
-        <Row icon="🏆" label="CricHeroes Awards" onPress={() => goInfo("CricHeroes Awards")} />
-        <Row icon="🤝" label="Associations" onPress={() => goInfo("Associations")} />
-        <Row icon="👥" label="Clubs" onPress={() => goInfo("Clubs")} />
-        <Row icon="📞" label="Contact" onPress={() => goInfo("Contact")} />
+        {mainItems.map((item) => renderItem(item))}
 
         <View style={styles.divider} />
 
-        <Row icon="↗" label="Share the app" onPress={shareApp} />
-        <Row icon="⭐" label="Rate us" onPress={rateUs} />
-        <Row icon="🔢" label={`App code: ${APP_CODE}`} onPress={showAppCode} />
+        {actionItems.map((item) => renderItem(item))}
 
         <TouchableOpacity
           style={styles.row}
@@ -255,29 +304,7 @@ export default function AppDrawerContent({ navigation }) {
         </TouchableOpacity>
         {moreOpen && (
           <View style={styles.moreWrap}>
-            <Row small icon="ⓘ" label="What's New" onPress={() => goInfo("What's New")} />
-            <TouchableOpacity
-              style={[styles.row, styles.rowSmall]}
-              activeOpacity={0.7}
-              onPress={() => setLangOpen(true)}
-            >
-              <View style={[styles.iconBox, styles.iconBoxSmall]}>
-                <Text style={[styles.rowIcon, styles.rowIconSmall]}>🌐</Text>
-              </View>
-              <Text style={[styles.rowLabel, styles.rowLabelSmall]} numberOfLines={1}>
-                Change Language ({lang})
-              </Text>
-            </TouchableOpacity>
-            <Row small icon="📷" label="Instagram" onPress={() => openUrl(SOCIALS.instagram, "Instagram")} />
-            <Row small icon="▶️" label="YouTube" onPress={() => openUrl(SOCIALS.youtube, "YouTube")} />
-            <Row small icon="📘" label="Facebook" onPress={() => openUrl(SOCIALS.facebook, "Facebook")} />
-            <Row small icon="✖️" label="X" onPress={() => openUrl(SOCIALS.x, "X")} />
-            <Row small icon="🛡" label="About Us" onPress={() => goInfo("About Us")} />
-            <Row small icon="📰" label="Blog" onPress={() => goInfo("Blog")} />
-            <Row small icon="❓" label="Help / FAQs" onPress={() => goInfo("Help / FAQs")} />
-            <Row small icon="📄" label="Privacy Policy" onPress={() => goInfo("Privacy Policy")} />
-            <Row small icon="📃" label="Terms of Service" onPress={() => goInfo("Terms of Service")} />
-            <Row small icon="🧾" label="Paid Service Terms" onPress={() => goInfo("Paid Service Terms")} />
+            {DRAWER_MORE_ITEMS.map((item) => renderItem(item, true))}
           </View>
         )}
         <View style={{ height: 24 }} />

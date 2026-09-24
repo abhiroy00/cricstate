@@ -17,6 +17,9 @@ import BoxCricketScreen from "../screens/community/BoxCricketScreen";
 import BoxDetailScreen from "../screens/community/BoxDetailScreen";
 import ProfileDetailScreen from "../screens/community/ProfileDetailScreen";
 import RoleBoardScreen from "../screens/community/RoleBoardScreen";
+import CricLeaderboardsHomeScreen from "../screens/community/CricLeaderboardsHomeScreen";
+import CricLeaderboardDetailScreen from "../screens/community/CricLeaderboardDetailScreen";
+import TopTeamsScreen from "../screens/community/TopTeamsScreen";
 import AddRoleScreen from "../screens/community/AddRoleScreen";
 import DirectMessagesScreen from "../screens/mycricket/DirectMessagesScreen";
 import ProBenefitsScreen from "../screens/mycricket/ProBenefitsScreen";
@@ -43,6 +46,9 @@ export default function CommunityStack() {
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
       <Stack.Screen name="CommunityList" component={CommunityListScreen} />
       <Stack.Screen name="RoleBoard" component={RoleBoardScreen} />
+      <Stack.Screen name="CricLeaderboardsHome" component={CricLeaderboardsHomeScreen} />
+      <Stack.Screen name="CricLeaderboardDetail" component={CricLeaderboardDetailScreen} />
+      <Stack.Screen name="TopTeams" component={TopTeamsScreen} />
       <Stack.Screen name="AddRole" component={AddRoleScreen} />
       <Stack.Screen name="DirectMessages" component={DirectMessagesScreen} />
       <Stack.Screen name="ProBenefits" component={ProBenefitsScreen} />
