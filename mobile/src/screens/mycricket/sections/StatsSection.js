@@ -1,5 +1,4 @@
-import { useCallback, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -12,7 +11,7 @@ import {
 import ProBanner from "../../../components/ProBanner";
 import { useAuth } from "../../../hooks/useAuth";
 import { extractErrorMessage } from "../../../services/api";
-import { createPlayer, getMyPlayer, getPlayerStats } from "../../../services/playerService";
+import { createPlayer } from "../../../services/playerService";
 import { colors } from "../../../utils/theme";
 
 const RED = "#E01A22";
@@ -61,56 +60,31 @@ function isAllZero(stats) {
   );
 }
 
-export default function StatsSection({ navigation }) {
+export default function StatsSection({ navigation, overview, loading: overviewLoading, error: overviewError, onRefresh }) {
   const { user } = useAuth();
   const [filter, setFilter] = useState("BATTING");
-  const [player, setPlayer] = useState(undefined);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [localError, setLocalError] = useState("");
   const [creating, setCreating] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const me = await getMyPlayer();
-      setPlayer(me);
-      setStats(await getPlayerStats(me.id));
-    } catch (err) {
-      if (err?.response?.status === 404) {
-        setPlayer(null);
-        setStats(null);
-      } else {
-        setError(extractErrorMessage(err));
-        setPlayer(null);
-        setStats(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load])
-  );
+  const player = overview?.player ?? null;
+  const stats = overview?.stats ?? null;
+  const loading = overviewLoading && overview === null;
+  const error = overviewError || localError;
 
   async function handleAnalyse() {
-    if (player === undefined || creating) return;
-    if (player) {
-      navigation.navigate("Analyse", { name: player.full_name || user.full_name });
+    if (overview === null || creating) return;
+    if (overview.player) {
+      navigation.navigate("Analyse", { name: overview.player.full_name || user.full_name });
       return;
     }
     setCreating(true);
-    setError("");
+    setLocalError("");
     try {
       const created = await createPlayer({ full_name: user.full_name, role: "BATSMAN", user_id: user.id });
-      await load();
+      await onRefresh?.();
       navigation.navigate("Analyse", { name: created?.full_name || user.full_name });
     } catch (err) {
-      setError(extractErrorMessage(err));
+      setLocalError(extractErrorMessage(err));
     } finally {
       setCreating(false);
     }

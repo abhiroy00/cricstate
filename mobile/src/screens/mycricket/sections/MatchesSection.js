@@ -302,36 +302,46 @@ function NetworkEmptyState({ navigation }) {
   );
 }
 
-export default function MatchesSection({ navigation }) {
+export default function MatchesSection({ navigation, overview, loading: overviewLoading, error: overviewError }) {
   const [filter, setFilter] = useState("PLAYED");
   const [audioLang, setAudioLang] = useState("Hindi");
-  const [matches, setMatches] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [allMatches, setAllMatches] = useState(null);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const [localError, setLocalError] = useState("");
 
-  const load = useCallback(async (tab) => {
-    setLoading(true);
-    setError("");
+  const overviewMatches = overview?.matches;
+
+  const matches =
+    filter === "YOUR"
+      ? overviewMatches?.your ?? null
+      : filter === "PLAYED"
+        ? overviewMatches?.played ?? null
+        : filter === "ALL"
+          ? allMatches
+          : [];
+
+  const loading =
+    filter === "ALL" ? loadingAll : overviewLoading && overviewMatches === undefined;
+  const error = overviewError || localError;
+
+  const loadAll = useCallback(async () => {
+    setLoadingAll(true);
+    setLocalError("");
     try {
-      const params = tab === "PLAYED" ? { status: "COMPLETED" } : {};
-      const data = await listMatches(params);
-      setMatches(data.items);
+      const data = await listMatches({});
+      setAllMatches(data.items);
     } catch (err) {
-      setError(extractErrorMessage(err));
+      setLocalError(extractErrorMessage(err));
     } finally {
-      setLoading(false);
+      setLoadingAll(false);
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      if (filter === "NETWORK") {
-        setLoading(false);
-        setError("");
-        setMatches([]);
-        return;
+      if (filter === "ALL") {
+        loadAll();
       }
-      load(filter);
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filter])
   );

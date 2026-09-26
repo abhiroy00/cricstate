@@ -15,6 +15,7 @@ import { DrawerActions } from "@react-navigation/native";
 
 import FilterSheet from "../../components/FilterSheet";
 import SearchOverlay from "../../components/SearchOverlay";
+import { getCommunityOverview } from "../../services/engagementService";
 import AppLogoImage from "../../components/AppLogo";
 import DreamHeader from "../../components/DreamHeader";
 import ProPill from "../../components/ProPill";
@@ -344,6 +345,22 @@ export default function CommunityScreen({ navigation }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterCount, setFilterCount] = useState(0);
+  const [counts, setCounts] = useState(null);
+
+  // Per-role listing counts for the current city (Community home tiles).
+  useEffect(() => {
+    let alive = true;
+    getCommunityOverview({ city })
+      .then((data) => {
+        if (alive) setCounts(data?.counts || null);
+      })
+      .catch(() => {
+        if (alive) setCounts(null);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [city]);
 
   const openDrawer = () => navigation?.dispatch?.(DrawerActions.openDrawer());
 
@@ -436,6 +453,11 @@ export default function CommunityScreen({ navigation }) {
                 <View style={styles.liveBadge}>
                   <LiveDot />
                   <Text style={styles.liveBadgeText}>LIVE</Text>
+                </View>
+              )}
+              {counts?.[item.key] > 0 && (
+                <View style={styles.countBadge}>
+                  <Text style={styles.countBadgeText}>{counts[item.key]}</Text>
                 </View>
               )}
               <Icon />
@@ -680,6 +702,24 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "900",
     letterSpacing: 1,
+  },
+  countBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    paddingHorizontal: 6,
+    backgroundColor: TEAL,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+  countBadgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "800",
   },
   tileBlank: {
     flex: 1,

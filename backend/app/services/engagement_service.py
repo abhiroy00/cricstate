@@ -123,6 +123,19 @@ class LookingService:
 
 
 class DirectoryService:
+    # Mobile Community home tile key -> stored listing category. Keep in sync
+    # with mobile/src/screens/community/CommunityScreen.js TILES.
+    CATEGORY_KEYS = {
+        "scorers": "Scorers",
+        "umpires": "Umpires",
+        "commentators": "Commentators",
+        "streamers": "Streamers",
+        "organisers": "Organisers",
+        "academies": "Academies",
+        "grounds": "Grounds",
+        "box": "Box Cricket",
+    }
+
     def __init__(self, db: AsyncSession):
         self.db = db
 
@@ -177,6 +190,41 @@ class DirectoryService:
             await self._attach_rating(listing)
             items.append(DirectoryListingOut.model_validate(listing).model_dump(mode="json"))
         return paginated_response(items, total, params)
+
+    async def get_overview(self, city: str | None, featured_limit: int = 6) -> dict:
+        """Single call behind the mobile Community home: per-role listing
+        counts for a city plus a few recent listings to feature."""
+        from app.schemas.engagement import DirectoryListingOut
+
+        counts: dict[str, int] = {}
+        total = 0
+        for key, label in self.CATEGORY_KEYS.items():
+            query = (
+                select(func.count())
+                .select_from(DirectoryListing)
+                .where(DirectoryListing.category == label)
+            )
+            if city:
+                query = query.where(DirectoryListing.city.ilike(f"%{city}%"))
+            count = (await self.db.execute(query)).scalar_one()
+            counts[key] = count
+            total += count
+
+        query = select(DirectoryListing)
+        if city:
+            query = query.where(DirectoryListing.city.ilike(f"%{city}%"))
+        rows = (
+            await self.db.execute(
+                query.order_by(DirectoryListing.created_at.desc()).limit(featured_limit)
+            )
+        ).scalars().all()
+
+        featured = []
+        for listing in rows:
+            await self._attach_rating(listing)
+            featured.append(DirectoryListingOut.model_validate(listing).model_dump(mode="json"))
+
+        return {"city": city, "total": total, "counts": counts, "featured": featured}
 
     async def get_or_404(self, listing_id: uuid.UUID) -> DirectoryListing:
         result = await self.db.execute(

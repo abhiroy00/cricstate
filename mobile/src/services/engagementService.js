@@ -33,6 +33,13 @@ export async function updateLookingPost(postId, payload) {
 
 // --- Community directory ---
 
+export async function getCommunityOverview({ city, featuredLimit = 6 } = {}) {
+  const response = await api.get("/community/overview", {
+    params: { city, featured_limit: featuredLimit },
+  });
+  return response.data.data;
+}
+
 export async function createListing(payload) {
   const response = await api.post("/community/listings", payload);
   return response.data.data;

@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional, Tuple
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.team import Team, TeamPlayer
@@ -40,6 +40,22 @@ class TeamRepository:
         total = (await self.db.execute(count_query)).scalar_one()
         result = await self.db.execute(query.order_by(Team.name).limit(limit).offset(offset))
         return list(result.scalars().all()), total
+
+    async def list_for_user(
+        self, user_id: uuid.UUID, player_id: Optional[uuid.UUID] = None
+    ) -> List[Team]:
+        """Teams the user owns plus teams their linked player is on. Backs the
+        MyCricket "Your teams" tab."""
+        conditions = [Team.created_by == user_id]
+        if player_id:
+            roster_teams = select(TeamPlayer.team_id).where(
+                TeamPlayer.player_id == player_id
+            )
+            conditions.append(Team.id.in_(roster_teams))
+        result = await self.db.execute(
+            select(Team).where(or_(*conditions)).order_by(Team.name)
+        )
+        return list(result.scalars().all())
 
     async def list_opponents(self, created_by: uuid.UUID) -> List[Team]:
         from app.models.match import Match

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1 import admin, auth, engagement, home, leaderboards, matches, memberships, players, profiles, scoring, store, streams, teams, tournaments, users, webhooks
+from app.api.v1 import admin, auth, engagement, home, leaderboards, matches, memberships, mycricket, players, profiles, scoring, store, streams, teams, tournaments, users, webhooks
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -12,6 +12,7 @@ api_router.include_router(tournaments.router)
 api_router.include_router(matches.router)
 api_router.include_router(scoring.router)
 api_router.include_router(home.router)
+api_router.include_router(mycricket.router)
 api_router.include_router(admin.router)
 api_router.include_router(store.router)
 api_router.include_router(streams.router)

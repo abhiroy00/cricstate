@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional, Tuple
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.tournament import Tournament, TournamentTeam
@@ -43,6 +43,24 @@ class TournamentRepository:
             query.order_by(Tournament.created_at.desc()).limit(limit).offset(offset)
         )
         return list(result.scalars().all()), total
+
+    async def list_for_user(
+        self, user_id: uuid.UUID, team_ids: List[uuid.UUID]
+    ) -> List[Tournament]:
+        """Tournaments the user organizes plus ones their teams registered for.
+        Backs the MyCricket Tournaments tab."""
+        conditions = [Tournament.organizer_id == user_id]
+        if team_ids:
+            registered = select(TournamentTeam.tournament_id).where(
+                TournamentTeam.team_id.in_(team_ids)
+            )
+            conditions.append(Tournament.id.in_(registered))
+        result = await self.db.execute(
+            select(Tournament)
+            .where(or_(*conditions))
+            .order_by(Tournament.created_at.desc())
+        )
+        return list(result.scalars().all())
 
     async def get_registration(
         self, tournament_id: uuid.UUID, team_id: uuid.UUID

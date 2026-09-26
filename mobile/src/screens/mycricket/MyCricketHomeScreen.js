@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import HighlightsSection from "./sections/HighlightsSection";
@@ -19,6 +20,8 @@ import {
   MenuGlyph,
   SearchGlyph,
 } from "../../components/HeaderIcon";
+import { extractErrorMessage } from "../../services/api";
+import { getMyCricket } from "../../services/myCricketService";
 
 const SECTIONS = [
   { key: "MATCHES", label: "Matches" },
@@ -71,6 +74,27 @@ export default function MyCricketHomeScreen({ navigation, route }) {
   const [filterCat, setFilterCat] = useState("LOCATION");
   const [filterCount, setFilterCount] = useState(1);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [overview, setOverview] = useState(null);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [overviewError, setOverviewError] = useState("");
+
+  const loadOverview = useCallback(async () => {
+    setOverviewLoading(true);
+    setOverviewError("");
+    try {
+      setOverview(await getMyCricket());
+    } catch (err) {
+      setOverviewError(extractErrorMessage(err));
+    } finally {
+      setOverviewLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadOverview();
+    }, [loadOverview])
+  );
 
   useEffect(() => {
     if (route?.params?.section && SECTION_COMPONENTS[route.params.section]) {
@@ -115,7 +139,13 @@ export default function MyCricketHomeScreen({ navigation, route }) {
       </View>
 
       <View style={styles.body}>
-        <SectionComponent navigation={navigation} />
+        <SectionComponent
+          navigation={navigation}
+          overview={overview}
+          loading={overviewLoading}
+          error={overviewError}
+          onRefresh={loadOverview}
+        />
       </View>
 
       <FilterSheet

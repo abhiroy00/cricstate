@@ -138,6 +138,17 @@ async def list_listings(
     return success_response(page)
 
 
+@router.get("/community/overview")
+async def community_overview(
+    city: str | None = Query(default=None),
+    featured_limit: int = Query(default=6, ge=0, le=20),
+    db: AsyncSession = Depends(get_db),
+):
+    """Backs the mobile Community home tile grid (counts per role + featured)."""
+    overview = await DirectoryService(db).get_overview(city, featured_limit)
+    return success_response(overview)
+
+
 @router.get("/community/listings/{listing_id}")
 async def get_listing(listing_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     listing = await DirectoryService(db).get_or_404(listing_id)

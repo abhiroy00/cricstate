@@ -1,5 +1,4 @@
-import { useCallback, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -9,10 +8,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-import { useAuth } from "../../../hooks/useAuth";
-import { extractErrorMessage } from "../../../services/api";
-import { listTeams } from "../../../services/teamService";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -178,45 +173,17 @@ function initials(name) {
     .toUpperCase();
 }
 
-export default function TeamsSection({ navigation }) {
-  const { user } = useAuth();
+export default function TeamsSection({ navigation, overview, loading: overviewLoading, error: overviewError }) {
   const [filter, setFilter] = useState("YOUR");
   const [audioLang, setAudioLang] = useState("Hindi");
-  const [teams, setTeams] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [showTopTeams, setShowTopTeams] = useState(false);
   const [followed, setFollowed] = useState({});
 
-  const load = useCallback(
-    async (tab) => {
-      // Opponents + Following are fixed illustration UIs — no API needed
-      if (tab !== "YOUR") {
-        setLoading(false);
-        setError("");
-        setTeams([]);
-        return;
-      }
-      setLoading(true);
-      setError("");
-      try {
-        const data = await listTeams({ createdBy: user.id, limit: 100 });
-        setTeams(data.items);
-      } catch (err) {
-        setError(extractErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [user.id]
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      load(filter);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filter])
-  );
+  // "Your teams" and its loading state come from the shared /mycricket call;
+  // the other tabs are fixed illustration UIs.
+  const teams = filter === "YOUR" ? overview?.teams ?? null : [];
+  const loading = filter === "YOUR" ? overviewLoading && overview === null : false;
+  const error = overviewError || "";
 
   const toggleLang = () => setAudioLang((l) => (l === "Hindi" ? "English" : "Hindi"));
 

@@ -10,7 +10,6 @@ import {
   View,
 } from "react-native";
 
-import { useAuth } from "../../../hooks/useAuth";
 import { extractErrorMessage } from "../../../services/api";
 import { listTournaments } from "../../../services/tournamentService";
 
@@ -289,43 +288,42 @@ const DEMO_TOURNAMENTS = [
   },
 ];
 
-export default function TournamentsSection({ navigation }) {
-  const { user } = useAuth();
+export default function TournamentsSection({ navigation, overview, loading: overviewLoading, error: overviewError }) {
   const [filter, setFilter] = useState("YOUR");
   const [audioLang, setAudioLang] = useState("Hindi");
-  const [tournaments, setTournaments] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [allTournaments, setAllTournaments] = useState(null);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const [localError, setLocalError] = useState("");
 
-  const load = useCallback(
-    async (tab) => {
-      // Participate tab is a fixed no-result UI (image 18.02.02) — no API call,
-      // so the illustration + Reset filters button always shows instantly.
-      if (tab === "PARTICIPATE" || tab === "NETWORK") {
-        setLoading(false);
-        setError("");
-        setTournaments([]);
-        return;
-      }
-      setLoading(true);
-      setError("");
-      try {
-        const data = await listTournaments(
-          tab === "YOUR" ? { organizerId: user.id, limit: 100 } : { limit: 100 }
-        );
-        setTournaments(data.items);
-      } catch (err) {
-        setError(extractErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [user.id]
-  );
+  const organized = overview?.tournaments?.organized ?? null;
+  const tournaments =
+    filter === "YOUR" ? organized : filter === "ALL" ? allTournaments : [];
+  const loading =
+    filter === "ALL"
+      ? loadingAll
+      : filter === "YOUR"
+        ? overviewLoading && overview === null
+        : false;
+  const error = overviewError || localError;
+
+  const loadAll = useCallback(async () => {
+    setLoadingAll(true);
+    setLocalError("");
+    try {
+      const data = await listTournaments({ limit: 100 });
+      setAllTournaments(data.items);
+    } catch (err) {
+      setLocalError(extractErrorMessage(err));
+    } finally {
+      setLoadingAll(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      load(filter);
+      if (filter === "ALL") {
+        loadAll();
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filter])
   );
