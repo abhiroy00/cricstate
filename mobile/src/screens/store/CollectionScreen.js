@@ -37,7 +37,7 @@ export default function CollectionScreen({ navigation, route, collectionKey }) {
   const title = route?.params?.title || route?.name || "Collection";
   const desc =
     COLLECTIONS[route?.name]?.desc ||
-    "Handpicked gear from the CricHeroes Store.";
+    "Handpicked gear from the CricState Store.";
 
   // Real products from backend merged with bundled mocks.
   const [apiProducts, setApiProducts] = useState([]);

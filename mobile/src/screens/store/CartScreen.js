@@ -84,7 +84,7 @@ export default function CartScreen({ navigation }) {
           <Text style={styles.successEmoji}>🎉</Text>
           <Text style={styles.successTitle}>Order placed!</Text>
           <Text style={styles.successSub}>
-            Thanks for shopping with CricHeroes Store. Your gear will ship
+            Thanks for shopping with CricState Store. Your gear will ship
             soon.
           </Text>
           <TouchableOpacity

@@ -7,7 +7,7 @@ export const DRAWER_ITEMS = [
   { key: "go-live", label: "Go Live", icon: "🎥", type: "tab", tab: "Looking", target: "LiveStreamers" },
   { key: "my-cricket", label: "My Cricket", icon: "🏏", type: "tab", tab: "My Cricket", target: "MyCricketHome" },
   { key: "my-performance", label: "My Performance", icon: "📊", type: "tab", tab: "My Cricket", target: "MyCricketHome", params: { section: "STATS" } },
-  { key: "store", label: "CricHeroes Store", icon: "🛒", type: "tab", tab: "Store", target: "StoreHome" },
+  { key: "store", label: "CricState Store", icon: "🛒", type: "tab", tab: "Store", target: "StoreHome" },
   { key: "leaderboards", label: "Leaderboards", icon: "🏵", type: "tab", tab: "Community", target: "CricLeaderboardsHome", params: {} },
   { key: "awards", label: "CricHeroes Awards", icon: "🏆", type: "info", title: "CricHeroes Awards" },
   { key: "associations", label: "Associations", icon: "🤝", type: "info", title: "Associations" },

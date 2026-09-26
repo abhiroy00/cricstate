@@ -243,11 +243,11 @@ export const PRODUCTS = [
 export const COLLECTIONS = {
   NewArrivals: {
     key: "new",
-    desc: "Fresh drops and latest gear. The newest arrivals in the CricHeroes Store.",
+    desc: "Fresh drops and latest gear. The newest arrivals in the CricState Store.",
   },
   DesignOfMonth: {
     key: "design",
-    desc: "Fresh drops, limited runs. The newest designs from the CricHeroes Store.",
+    desc: "Fresh drops, limited runs. The newest designs from the CricState Store.",
   },
   TimelessClassics: {
     key: "timeless",

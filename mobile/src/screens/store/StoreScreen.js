@@ -141,7 +141,7 @@ const POLICY_TEXTS = {
   "Privacy Policy":
     "Your name, address and order details are used only to fulfil orders and improve recommendations. We never sell your personal data to third parties.",
   "Terms of Use":
-    "Prices include all taxes. Discount codes apply per offer terms. CricHeroes Store may cancel orders in case of pricing errors, with a full refund.",
+    "Prices include all taxes. Discount codes apply per offer terms. CricState Store may cancel orders in case of pricing errors, with a full refund.",
 };
 
 // Drawer label -> [screen, title]. Every tappable menu item is covered.
