@@ -17,6 +17,7 @@ export default function Header() {
           <Link to="/teams">Teams</Link>
           <Link to="/players">Players</Link>
           <Link to="/tournaments">Tournaments</Link>
+          <Link to="/store">Store</Link>
         </nav>
       )}
       {user && (

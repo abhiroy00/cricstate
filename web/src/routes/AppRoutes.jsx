@@ -2,14 +2,18 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import AuthLayout from "../layouts/AuthLayout";
 import MainLayout from "../layouts/MainLayout";
+import Cart from "../pages/Cart";
 import Home from "../pages/Home";
 import MatchDetail from "../pages/MatchDetail";
 import Matches from "../pages/Matches";
+import Orders from "../pages/Orders";
 import PlayerDetail from "../pages/PlayerDetail";
 import Players from "../pages/Players";
+import ProductDetail from "../pages/ProductDetail";
 import Profile from "../pages/Profile";
 import PublicProfile from "../pages/PublicProfile";
 import Scorer from "../pages/Scorer";
+import Store from "../pages/Store";
 import TeamDetail from "../pages/TeamDetail";
 import Teams from "../pages/Teams";
 import TournamentDetail from "../pages/TournamentDetail";
@@ -40,6 +44,10 @@ export default function AppRoutes() {
           <Route path="/matches" element={<Matches />} />
           <Route path="/matches/:matchId" element={<MatchDetail />} />
           <Route path="/matches/:matchId/scorer" element={<Scorer />} />
+          <Route path="/store" element={<Store />} />
+          <Route path="/store/products/:productId" element={<ProductDetail />} />
+          <Route path="/store/cart" element={<Cart />} />
+          <Route path="/store/orders" element={<Orders />} />
         </Route>
       </Route>
 
