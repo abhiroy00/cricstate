@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
+import { createListing, listListings } from "../../services/engagementService";
 import {
   BackGlyph,
   FilterGlyph,
@@ -106,6 +107,36 @@ export default function BoxCricketScreen({ navigation, route }) {
   const [sortKey, setSortKey] = useState(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [list, setList] = useState(SEED);
+
+  // Real box-cricket listings from backend, merged above bundled seeds.
+  useEffect(() => {
+    let alive = true;
+    listListings({ category: "Box Cricket", limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items?.length) return;
+        const remote = page.items.map((l) => ({
+          id: `api-${l.id}`,
+          backendId: l.id,
+          name: l.name,
+          location: l.city || "",
+          rating: l.avg_rating,
+          reviews: l.review_count || 0,
+          bg: "#101A2E",
+          fg: "#4DB8FF",
+          initials: l.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase(),
+          phone: l.contact || "",
+          fee: "₹-/slot onwards",
+          charges: "-/slot onwards",
+          desc: l.description || "",
+          slots: [],
+        }));
+        setList((p) => [...remote, ...p.filter((e) => !String(e.id).startsWith("api-"))]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [regOpen, setRegOpen] = useState(false);
   const [regName, setRegName] = useState("");
   const [regPhone, setRegPhone] = useState("");
@@ -125,6 +156,14 @@ export default function BoxCricketScreen({ navigation, route }) {
   const submitReg = () => {
     if (!regName.trim() || regPhone.trim().length < 10) return;
     const nm = regName.trim();
+    // Persist to backend directory in background; board updates instantly.
+    createListing({
+      category: "Box Cricket",
+      name: nm,
+      city: city || null,
+      description: "is a new box cricket venue. Slots will open soon.",
+      contact: regPhone.trim(),
+    }).catch(() => {});
     setList((p) => [
       {
         id: `x-${Date.now()}`, name: nm, location: city,

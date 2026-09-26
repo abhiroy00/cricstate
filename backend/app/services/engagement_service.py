@@ -9,6 +9,7 @@ from app.models.engagement import (
     Conversation,
     ConversationMember,
     DirectoryListing,
+    ListingReview,
     LookingPost,
     LookingStatus,
     Message,
@@ -21,6 +22,7 @@ from app.schemas.engagement import (
     ConversationCreate,
     DirectoryListingCreate,
     DirectoryListingUpdate,
+    ListingReviewCreate,
     LookingPostCreate,
     LookingPostUpdate,
     MessageCreate,
@@ -124,12 +126,23 @@ class DirectoryService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    async def _attach_rating(self, listing: DirectoryListing) -> DirectoryListing:
+        agg = await self.db.execute(
+            select(func.count(), func.coalesce(func.avg(ListingReview.rating), 0)).where(
+                ListingReview.listing_id == listing.id
+            )
+        )
+        count, avg = agg.one()
+        listing.review_count = count
+        listing.avg_rating = round(float(avg), 1) if count else None
+        return listing
+
     async def create(self, user: User, payload: DirectoryListingCreate) -> DirectoryListing:
         listing = DirectoryListing(owner_id=user.id, **payload.model_dump())
         self.db.add(listing)
         await self.db.commit()
         await self.db.refresh(listing)
-        return listing
+        return await self._attach_rating(listing)
 
     async def list_listings(
         self,
@@ -159,11 +172,11 @@ class DirectoryService:
                 .offset(params.offset)
             )
         ).scalars().all()
-        return paginated_response(
-            [DirectoryListingOut.model_validate(l).model_dump(mode="json") for l in rows],
-            total,
-            params,
-        )
+        items = []
+        for listing in rows:
+            await self._attach_rating(listing)
+            items.append(DirectoryListingOut.model_validate(listing).model_dump(mode="json"))
+        return paginated_response(items, total, params)
 
     async def get_or_404(self, listing_id: uuid.UUID) -> DirectoryListing:
         result = await self.db.execute(
@@ -172,12 +185,17 @@ class DirectoryService:
         listing = result.scalar_one_or_none()
         if not listing:
             raise NotFoundError("Listing not found")
-        return listing
+        return await self._attach_rating(listing)
 
     async def update(
         self, user: User, listing_id: uuid.UUID, payload: DirectoryListingUpdate, is_admin: bool = False
     ) -> DirectoryListing:
-        listing = await self.get_or_404(listing_id)
+        result = await self.db.execute(
+            select(DirectoryListing).where(DirectoryListing.id == listing_id)
+        )
+        listing = result.scalar_one_or_none()
+        if not listing:
+            raise NotFoundError("Listing not found")
         data = payload.model_dump(exclude_unset=True)
         if "is_verified" in data and not is_admin:
             raise ForbiddenError("Only admins can verify listings")
@@ -187,7 +205,88 @@ class DirectoryService:
             setattr(listing, field, value)
         await self.db.commit()
         await self.db.refresh(listing)
-        return listing
+        return await self._attach_rating(listing)
+
+    async def delete(self, user: User, listing_id: uuid.UUID, is_admin: bool = False) -> None:
+        result = await self.db.execute(
+            select(DirectoryListing).where(DirectoryListing.id == listing_id)
+        )
+        listing = result.scalar_one_or_none()
+        if not listing:
+            raise NotFoundError("Listing not found")
+        if listing.owner_id != user.id and not is_admin:
+            raise ForbiddenError("Not your listing")
+        await self.db.delete(listing)
+        await self.db.commit()
+
+
+class ListingReviewService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def create(
+        self, user: User, listing_id: uuid.UUID, payload: ListingReviewCreate
+    ):
+        from app.schemas.engagement import ListingReviewOut
+
+        listing = await DirectoryService(self.db).get_or_404(listing_id)
+        existing = (
+            await self.db.execute(
+                select(ListingReview).where(
+                    ListingReview.listing_id == listing.id,
+                    ListingReview.reviewer_id == user.id,
+                )
+            )
+        ).scalar_one_or_none()
+        if existing:
+            raise AppError("You have already reviewed this listing")
+        review = ListingReview(
+            listing_id=listing.id, reviewer_id=user.id, **payload.model_dump()
+        )
+        self.db.add(review)
+        await self.db.commit()
+        await self.db.refresh(review)
+        return review
+
+    async def list_reviews(self, listing_id: uuid.UUID, params: PageParams) -> dict:
+        from app.schemas.engagement import ListingReviewOut
+
+        await DirectoryService(self.db).get_or_404(listing_id)
+        count_query = (
+            select(func.count())
+            .select_from(ListingReview)
+            .where(ListingReview.listing_id == listing_id)
+        )
+        total = (await self.db.execute(count_query)).scalar_one()
+        rows = (
+            await self.db.execute(
+                select(ListingReview)
+                .where(ListingReview.listing_id == listing_id)
+                .order_by(ListingReview.created_at.desc())
+                .limit(params.limit)
+                .offset(params.offset)
+            )
+        ).scalars().all()
+        return paginated_response(
+            [ListingReviewOut.model_validate(r).model_dump(mode="json") for r in rows],
+            total,
+            params,
+        )
+
+    async def delete(self, user: User, listing_id: uuid.UUID, review_id: uuid.UUID, is_admin: bool = False) -> None:
+        result = await self.db.execute(
+            select(ListingReview).where(
+                ListingReview.id == review_id,
+                ListingReview.listing_id == listing_id,
+            )
+        )
+        review = result.scalar_one_or_none()
+        if not review:
+            raise NotFoundError("Review not found")
+        if review.reviewer_id != user.id and not is_admin:
+            raise ForbiddenError("Not your review")
+        await self.db.delete(review)
+        await self.db.commit()
 
 
 class ReportService:

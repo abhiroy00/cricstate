@@ -55,6 +55,35 @@ export async function updateListing(listingId, payload) {
   return response.data.data;
 }
 
+export async function deleteListing(listingId) {
+  const response = await api.delete(`/community/listings/${listingId}`);
+  return response.data.data;
+}
+
+// --- Listing reviews (community detail screens) ---
+
+export async function createReview(listingId, { rating, text }) {
+  const response = await api.post(`/community/listings/${listingId}/reviews`, {
+    rating,
+    text,
+  });
+  return response.data.data;
+}
+
+export async function listReviews(listingId, { limit = 20, offset = 0 } = {}) {
+  const response = await api.get(`/community/listings/${listingId}/reviews`, {
+    params: { limit, offset },
+  });
+  return response.data.data;
+}
+
+export async function deleteReview(listingId, reviewId) {
+  const response = await api.delete(
+    `/community/listings/${listingId}/reviews/${reviewId}`
+  );
+  return response.data.data;
+}
+
 // --- Content reports ---
 
 export async function createReport(payload) {

@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
+import { listListings } from "../../services/engagementService";
 import {
   BackGlyph,
   FilterGlyph,
@@ -117,12 +118,44 @@ export default function LiveStreamersScreen({ navigation, route }) {
     }
   }, [locParam, navigation]);
 
-  const liveCount = STREAMERS.filter((s) => s.live).length;
+  // Real streamer listings from backend, merged above bundled seeds.
+  const [apiStreamers, setApiStreamers] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    listListings({ category: "Streamers", limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items?.length) return;
+        setApiStreamers(
+          page.items.map((l) => ({
+            id: `api-${l.id}`,
+            name: l.name,
+            videos: 0,
+            rating: l.avg_rating != null ? `${l.avg_rating}/5` : "-/5",
+            ratingNum: l.avg_rating ?? 0,
+            reviews: l.review_count || 0,
+            emoji: "📹",
+            bg: "#101828",
+            city: l.city || "",
+            live: false,
+          }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const allStreamers = useMemo(
+    () => [...apiStreamers, ...STREAMERS],
+    [apiStreamers]
+  );
+  const liveCount = allStreamers.filter((s) => s.live).length;
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let arr = STREAMERS.filter((s) => {
-      if (cities.length > 0 && !cities.includes(s.city)) return false;
+    let arr = allStreamers.filter((s) => {
+      if (cities.length > 0 && s.city && !cities.includes(s.city)) return false;
       if (q && !s.name.toLowerCase().includes(q)) return false;
       return true;
     });

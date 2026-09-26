@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
+import { createListing, listListings } from "../../services/engagementService";
 import {
   BackGlyph,
   FilterGlyph,
@@ -130,6 +131,37 @@ export default function AcademiesScreen({ navigation, route }) {
   const [sortKey, setSortKey] = useState(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [list, setList] = useState(SEED);
+
+  // Real academy listings from backend, merged above bundled seeds.
+  useEffect(() => {
+    let alive = true;
+    listListings({ category: "Academies", limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items?.length) return;
+        const remote = page.items.map((l) => ({
+          id: `api-${l.id}`,
+          backendId: l.id,
+          name: l.name,
+          address: l.city || "",
+          fee: "-",
+          rating: l.avg_rating,
+          reviews: l.review_count || 0,
+          views: 0,
+          bg: "#8A9A8B",
+          emoji: "🏏",
+          facilities: [],
+          ageGroup: "-",
+          duration: "-",
+          feesDetail: "-",
+          coaches: [],
+        }));
+        setList((p) => [...remote, ...p.filter((e) => !String(e.id).startsWith("api-"))]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [regOpen, setRegOpen] = useState(false);
   const [regName, setRegName] = useState("");
   const [regPhone, setRegPhone] = useState("");
@@ -150,6 +182,14 @@ export default function AcademiesScreen({ navigation, route }) {
   const submitReg = () => {
     if (!regName.trim() || regPhone.trim().length < 10) return;
     const nm = regName.trim();
+    // Persist to backend directory in background; board updates instantly.
+    createListing({
+      category: "Academies",
+      name: nm,
+      city: city || null,
+      description: "Cricket coaching academy.",
+      contact: regPhone.trim(),
+    }).catch(() => {});
     setList((p) => [
       {
         id: `x-${Date.now()}`, name: nm, address: `${city}`, fee: "₹-/1m",

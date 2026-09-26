@@ -84,6 +84,24 @@ class DirectoryListingOut(BaseModel):
     description: Optional[str] = None
     contact: Optional[str] = None
     is_verified: bool
+    avg_rating: Optional[float] = None
+    review_count: int = 0
+    created_at: datetime
+
+
+class ListingReviewCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    text: Optional[str] = Field(default=None, max_length=2000)
+
+
+class ListingReviewOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    listing_id: uuid.UUID
+    reviewer_id: uuid.UUID
+    rating: int
+    text: Optional[str] = None
     created_at: datetime
 
 

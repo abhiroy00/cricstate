@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Linking,
@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 import RoleIcon from "../../components/RoleIcon";
+import { listListings } from "../../services/engagementService";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -70,17 +71,53 @@ const roleForId = (id = "") => {
 };
 
 
+const CATEGORY_LABEL = {
+  scorers: "Scorers",
+  umpires: "Umpires",
+  commentators: "Commentators",
+  streamers: "Streamers",
+  organisers: "Organisers",
+  academies: "Academies",
+  grounds: "Grounds",
+  box: "Box Cricket",
+};
+
 export default function CommunityListScreen({ navigation, route }) {
   const { category = "all", title = "Community", city = "Delhi" } = route?.params || {};
   const [filter, setFilter] = useState("All");
+  const [apiItems, setApiItems] = useState([]);
+
+  // Real directory listings from backend, merged above bundled samples.
+  useEffect(() => {
+    let alive = true;
+    const label = CATEGORY_LABEL[category];
+    listListings({ category: label || undefined, limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items?.length) return;
+        setApiItems(
+          page.items.map((l) => ({
+            id: `api-${l.id}`,
+            name: l.name,
+            meta: l.description || l.city || "",
+            km: l.city || "",
+            rating: l.avg_rating != null ? String(l.avg_rating) : "-",
+          }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [category]);
 
   const data = useMemo(() => {
     const all = Object.values(SAMPLE).flat();
-    let list = category === "all" ? all : SAMPLE[category] || all;
+    const seeds = category === "all" ? all : SAMPLE[category] || all;
+    let list = [...apiItems, ...seeds];
     if (filter === "Near me") list = [...list].sort((a, b) => parseFloat(a.km) - parseFloat(b.km));
     if (filter === "Top rated") list = [...list].sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
     return list;
-  }, [category, filter]);
+  }, [category, filter, apiItems]);
 
   const call = () => Linking.openURL("tel:+919999999999").catch(() => {});
 

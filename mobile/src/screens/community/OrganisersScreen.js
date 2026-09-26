@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
+import { createListing, listListings } from "../../services/engagementService";
 import {
   BackGlyph,
   FilterGlyph,
@@ -113,6 +114,36 @@ export default function OrganisersScreen({ navigation, route }) {
   const [sortKey, setSortKey] = useState(null);
   const [sortOpen, setSortOpen] = useState(false);
   const [list, setList] = useState(SEED);
+
+  // Real organiser listings from backend, merged above bundled seeds.
+  useEffect(() => {
+    let alive = true;
+    listListings({ category: "Organisers", limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items?.length) return;
+        const remote = page.items.map((l) => ({
+          id: `api-${l.id}`,
+          backendId: l.id,
+          name: l.name,
+          location: l.city || "",
+          tournaments: 0,
+          rating: l.avg_rating,
+          reviews: l.review_count || 0,
+          bg: "#2E3B4E",
+          fg: "#fff",
+          initials: l.name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase(),
+          phone: l.contact || null,
+          fee: null,
+          charges: null,
+          desc: l.description || null,
+        }));
+        setList((p) => [...remote, ...p.filter((e) => !String(e.id).startsWith("api-"))]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [regOpen, setRegOpen] = useState(false);
   const [regName, setRegName] = useState("");
   const [regPhone, setRegPhone] = useState("");
@@ -133,6 +164,14 @@ export default function OrganisersScreen({ navigation, route }) {
   const submitReg = () => {
     if (!regName.trim() || regPhone.trim().length < 10) return;
     const nm = regName.trim();
+    // Persist to backend directory in background; board updates instantly.
+    createListing({
+      category: "Organisers",
+      name: nm,
+      city: city || null,
+      description: "is a new tournament organiser. Tournaments will appear here soon.",
+      contact: regPhone.trim(),
+    }).catch(() => {});
     setList((p) => [
       {
         id: `x-${Date.now()}`,

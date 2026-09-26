@@ -16,6 +16,8 @@ from app.schemas.engagement import (
     DirectoryListingCreate,
     DirectoryListingOut,
     DirectoryListingUpdate,
+    ListingReviewCreate,
+    ListingReviewOut,
     LookingPostCreate,
     LookingPostOut,
     LookingPostUpdate,
@@ -28,6 +30,7 @@ from app.schemas.engagement import (
 from app.services.engagement_service import (
     DirectMessageService,
     DirectoryService,
+    ListingReviewService,
     LookingService,
     NotificationService,
     ReportService,
@@ -154,6 +157,58 @@ async def update_listing(
         DirectoryListingOut.model_validate(listing).model_dump(mode="json"),
         message="Listing updated",
     )
+
+
+@router.delete("/community/listings/{listing_id}")
+async def delete_listing(
+    listing_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    is_admin = bool(set(current_user.role_names) & set(ADMIN_ROLES))
+    await DirectoryService(db).delete(current_user, listing_id, is_admin)
+    return success_response(None, message="Listing deleted")
+
+
+# --- Listing reviews (community detail screens) ---
+
+@router.post("/community/listings/{listing_id}/reviews")
+async def create_review(
+    listing_id: uuid.UUID,
+    payload: ListingReviewCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    review = await ListingReviewService(db).create(current_user, listing_id, payload)
+    return success_response(
+        ListingReviewOut.model_validate(review).model_dump(mode="json"),
+        message="Review submitted",
+    )
+
+
+@router.get("/community/listings/{listing_id}/reviews")
+async def list_reviews(
+    listing_id: uuid.UUID,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    db: AsyncSession = Depends(get_db),
+):
+    page = await ListingReviewService(db).list_reviews(
+        listing_id, PageParams(limit=limit, offset=offset)
+    )
+    return success_response(page)
+
+
+@router.delete("/community/listings/{listing_id}/reviews/{review_id}")
+async def delete_review(
+    listing_id: uuid.UUID,
+    review_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    is_admin = bool(set(current_user.role_names) & set(ADMIN_ROLES))
+    await ListingReviewService(db).delete(current_user, listing_id, review_id, is_admin)
+    return success_response(None, message="Review deleted")
 
 
 # --- Content reports ---

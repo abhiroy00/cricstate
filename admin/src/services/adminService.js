@@ -24,3 +24,22 @@ export async function updateProduct(productId, payload) {
   const response = await api.patch(`/store/products/${productId}`, payload);
   return response.data.data;
 }
+
+export async function verifyListing(listingId, isVerified) {
+  const response = await api.patch(`/community/listings/${listingId}`, {
+    is_verified: isVerified,
+  });
+  return response.data.data;
+}
+
+export async function deleteListing(listingId) {
+  const response = await api.delete(`/community/listings/${listingId}`);
+  return response.data.data;
+}
+
+export async function deleteReview(listingId, reviewId) {
+  const response = await api.delete(
+    `/community/listings/${listingId}/reviews/${reviewId}`
+  );
+  return response.data.data;
+}

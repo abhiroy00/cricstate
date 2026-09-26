@@ -1,14 +1,17 @@
 import { useState } from "react";
 import {
+  Modal,
   ScrollView,
   Share,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
+import { useListingReviews } from "../../hooks/useListingReviews";
 import {
   BackGlyph,
   HeaderIconBtn,
@@ -52,13 +55,46 @@ const SAMPLE_VIDEOS = [
 export default function StreamerDetailScreen({ navigation, route }) {
   const { streamer, city = "Delhi" } = route?.params || {};
   const [tab, setTab] = useState("About");
+  const [myReviews, setMyReviews] = useState([]);
+  const [rateOpen, setRateOpen] = useState(false);
+  const [stars, setStars] = useState(0);
+  const [reviewText, setReviewText] = useState("");
   const insets = useSafeAreaInsets();
+  const { apiReviews, agg, submit: submitApiReview } = useListingReviews(
+    streamer?.backendId || null
+  );
 
   if (!streamer) return null;
 
   const rating = typeof streamer.rating === "number" ? streamer.rating : 0;
   const reviews = streamer.reviews ?? 0;
+  // Real backend aggregate wins when opened from an API row.
+  const effAvg =
+    agg && agg.count > 0 && agg.avg != null
+      ? agg.avg
+      : reviews > 0
+        ? rating
+        : 0;
+  const effCount = agg ? agg.count + myReviews.length : reviews + myReviews.length;
   const videosLabel = streamer.videos > 0 ? String(streamer.videos) : "-";
+
+  const submitReview = async () => {
+    if (stars < 1) return;
+    const text = reviewText.trim() || "Good experience.";
+    const entry = { name: "You", text };
+    setStars(0);
+    setReviewText("");
+    setRateOpen(false);
+    if (streamer.backendId) {
+      try {
+        await submitApiReview(stars, text);
+        return;
+      } catch {
+        // Offline — keep the local copy below.
+      }
+    }
+    setMyReviews((p) => [entry, ...p]);
+  };
 
   const shareProfile = () => {
     Share.share({ message: `${streamer.name} - Live streamer in ${city}: ${rating.toFixed(1)} rated (${reviews} reviews)` }).catch(() => {});
@@ -101,9 +137,9 @@ export default function StreamerDetailScreen({ navigation, route }) {
             <Text style={styles.rate} numberOfLines={1}>
               {streamer.fee || "—"}
             </Text>
-            <Text style={styles.rating}>{rating.toFixed(1)}</Text>
-            <Stars value={rating} size={20} />
-            <Text style={styles.revCount}>({reviews})</Text>
+            <Text style={styles.rating}>{effAvg.toFixed(1)}</Text>
+            <Stars value={effAvg} size={20} />
+            <Text style={styles.revCount}>({effCount})</Text>
           </View>
         </View>
 
@@ -154,12 +190,26 @@ export default function StreamerDetailScreen({ navigation, route }) {
           {tab === "Reviews" && (
             <View style={styles.card}>
               <View style={styles.revHead}>
-                <Text style={styles.revBig}>{rating.toFixed(1)}</Text>
+                <Text style={styles.revBig}>{effAvg.toFixed(1)}</Text>
                 <View>
-                  <Stars value={rating} size={18} />
-                  <Text style={styles.revCountDark}>{reviews} ratings</Text>
+                  <Stars value={effAvg} size={18} />
+                  <Text style={styles.revCountDark}>{effCount} ratings</Text>
                 </View>
               </View>
+              {apiReviews.map((r) => (
+                <View key={`api-${r.id}`} style={styles.revItem}>
+                  <Text style={styles.revName}>User</Text>
+                  <Stars value={r.rating} size={14} />
+                  {r.text ? <Text style={styles.revText}>{r.text}</Text> : null}
+                </View>
+              ))}
+              {myReviews.map((r, i) => (
+                <View key={`m-${i}`} style={styles.revItem}>
+                  <Text style={styles.revName}>{r.name}</Text>
+                  <Stars value={5} size={14} />
+                  <Text style={styles.revText}>{r.text}</Text>
+                </View>
+              ))}
               {SAMPLE_REVIEWS.map((r) => (
                 <View key={r.name} style={styles.revItem}>
                   <Text style={styles.revName}>{r.name}</Text>
@@ -167,6 +217,13 @@ export default function StreamerDetailScreen({ navigation, route }) {
                   <Text style={styles.revText}>{r.text}</Text>
                 </View>
               ))}
+              <TouchableOpacity
+                style={styles.writeBtn}
+                activeOpacity={0.85}
+                onPress={() => setRateOpen(true)}
+              >
+                <Text style={styles.writeText}>Write a review</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -187,6 +244,36 @@ export default function StreamerDetailScreen({ navigation, route }) {
           )}
         </View>
       </ScrollView>
+
+      <Modal visible={rateOpen} transparent animationType="fade" onRequestClose={() => setRateOpen(false)}>
+        <View style={styles.rateDim}>
+          <View style={styles.rateBox}>
+            <Text style={styles.rateTitle}>Rate {streamer.name}</Text>
+            <View style={styles.rateStars}>
+              {[1, 2, 3, 4, 5].map((s) => (
+                <TouchableOpacity key={s} hitSlop={8} onPress={() => setStars(s)} activeOpacity={0.7}>
+                  <Text style={[styles.rateStar, s <= stars && styles.rateStarOn]}>★</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={styles.rateInput}
+              multiline
+              placeholder="Share your experience (optional)"
+              value={reviewText}
+              onChangeText={setReviewText}
+            />
+            <View style={styles.rateRow}>
+              <TouchableOpacity style={styles.rateCancel} onPress={() => setRateOpen(false)} activeOpacity={0.8}>
+                <Text style={styles.rateCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.rateSubmit} onPress={submitReview} activeOpacity={0.85}>
+                <Text style={styles.rateSubmitText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -273,4 +360,41 @@ const styles = StyleSheet.create({
   playIcon: { color: "#fff", fontSize: 22 },
   videoTitle: { fontSize: 15, fontWeight: "600", color: "#111" },
   videoMeta: { fontSize: 13, color: "#8A8A8A", marginTop: 4 },
+  writeBtn: {
+    backgroundColor: TEAL,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 14,
+  },
+  writeText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  rateDim: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 28,
+  },
+  rateBox: { backgroundColor: "#fff", borderRadius: 16, padding: 20, width: "100%" },
+  rateTitle: { fontSize: 17, fontWeight: "800", color: "#111" },
+  rateStars: { flexDirection: "row", marginTop: 12, gap: 6 },
+  rateStar: { fontSize: 34, color: "#DDD" },
+  rateStarOn: { color: STAR },
+  rateInput: {
+    borderWidth: 1,
+    borderColor: "#E2E2E2",
+    borderRadius: 10,
+    minHeight: 80,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: "#111",
+    textAlignVertical: "top",
+  },
+  rateRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 14, gap: 10 },
+  rateCancel: { paddingHorizontal: 16, paddingVertical: 10 },
+  rateCancelText: { fontSize: 15, color: "#777", fontWeight: "600" },
+  rateSubmit: { backgroundColor: TEAL, borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
+  rateSubmitText: { color: "#fff", fontSize: 15, fontWeight: "700" },
 });

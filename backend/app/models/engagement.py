@@ -2,7 +2,7 @@ import uuid
 from enum import Enum
 from typing import List, Optional
 
-from sqlalchemy import Boolean, ForeignKey, String, Text
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPkMixin
@@ -62,6 +62,31 @@ class DirectoryListing(UUIDPkMixin, TimestampMixin, Base):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     contact: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    reviews: Mapped[List["ListingReview"]] = relationship(
+        back_populates="listing", cascade="all, delete-orphan"
+    )
+
+
+class ListingReview(UUIDPkMixin, TimestampMixin, Base):
+    """Star rating + text review on a directory listing.
+
+    Backs the Write-review modals on every community detail screen
+    (streamers, organisers, academies, grounds, box-cricket).
+    """
+
+    __tablename__ = "listing_reviews"
+
+    listing_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("directory_listings.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    reviewer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    listing: Mapped["DirectoryListing"] = relationship(back_populates="reviews")
 
 
 class ContentReport(UUIDPkMixin, TimestampMixin, Base):

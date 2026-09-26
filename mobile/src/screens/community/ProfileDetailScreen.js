@@ -12,6 +12,7 @@ import {
 } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
+import { useListingReviews } from "../../hooks/useListingReviews";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -123,6 +124,9 @@ export default function ProfileDetailScreen({ navigation, route }) {
     route?.params || {};
   const [tab, setTab] = useState("About");
   const insets = useSafeAreaInsets();
+  const { apiReviews, agg } = useListingReviews(
+    route?.params?.person?.backendId || null
+  );
 
   if (!person) return null;
 
@@ -146,8 +150,11 @@ export default function ProfileDetailScreen({ navigation, route }) {
       "—",
   };
   const idNum = parseInt(safePerson.id, 10) || 1;
-  const rating = (4.6 + ((idNum * 7) % 4) * 0.1).toFixed(1);
-  const reviewCount = 40 + ((safePerson.matches * 13) % 160);
+  const rating =
+    agg && agg.count > 0 && agg.avg != null
+      ? agg.avg.toFixed(1)
+      : (4.6 + ((idNum * 7) % 4) * 0.1).toFixed(1);
+  const reviewCount = agg ? agg.count : 40 + ((safePerson.matches * 13) % 160);
   const allTime = idNum + 2;
   const totalMatches = safePerson.matches * 24 + 154;
   const exp = `${(idNum % 4) + 2} yrs`;
@@ -291,6 +298,13 @@ export default function ProfileDetailScreen({ navigation, route }) {
                   </Text>
                 </View>
               </View>
+              {apiReviews.map((r) => (
+                <View key={`api-${r.id}`} style={styles.revItem}>
+                  <Text style={styles.revName}>User</Text>
+                  <Stars size={14} />
+                  {r.text ? <Text style={styles.revText}>{r.text}</Text> : null}
+                </View>
+              ))}
               {REVIEWS.map((r) => (
                 <View key={r.name} style={styles.revItem}>
                   <Text style={styles.revName}>{r.name}</Text>

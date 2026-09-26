@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useListingReviews } from "../../hooks/useListingReviews";
 import { BackGlyph, HeaderIconBtn, ShareGlyph } from "../../components/HeaderIcon";
 import RoleIcon, { RoleGlyph } from "../../components/RoleIcon";
 
@@ -51,6 +52,9 @@ export default function AcademyDetailScreen({ navigation, route }) {
   const [stars, setStars] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const insets = useSafeAreaInsets();
+  const { apiReviews, agg, submit: submitApiReview } = useListingReviews(
+    academy?.backendId || null
+  );
 
   if (!academy) return null;
 
@@ -62,6 +66,9 @@ export default function AcademyDetailScreen({ navigation, route }) {
     totalReviews > 0
       ? ((hasRating ? rating * reviews : 0) + myReviews.reduce((s, r) => s + r.stars, 0)) / totalReviews
       : 0;
+  // Real backend aggregate wins when opened from an API row.
+  const effAvg = agg && agg.count > 0 && agg.avg != null ? agg.avg : avgRating;
+  const effCount = agg ? agg.count + myReviews.length : totalReviews;
 
   const shareAcademy = () => {
     Share.share({ message: `${academy.name} - Cricket academy: ${academy.address}` }).catch(() => {});
@@ -71,12 +78,22 @@ export default function AcademyDetailScreen({ navigation, route }) {
     Share.share({ message: `${academy.name}: ${academy.address}` }).catch(() => {});
   };
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (stars < 1) return;
-    setMyReviews((p) => [{ name: "You", stars, text: reviewText.trim() || "Good experience." }, ...p]);
+    const text = reviewText.trim() || "Good experience.";
+    const entry = { name: "You", stars, text };
     setStars(0);
     setReviewText("");
     setRateOpen(false);
+    if (academy.backendId) {
+      try {
+        await submitApiReview(stars, text);
+        return;
+      } catch {
+        // Offline — keep the local copy below.
+      }
+    }
+    setMyReviews((p) => [entry, ...p]);
   };
 
   return (
@@ -213,7 +230,7 @@ export default function AcademyDetailScreen({ navigation, route }) {
           )}
 
           {tab === "Reviews" &&
-            (totalReviews === 0 ? (
+            (effCount === 0 ? (
               <View style={styles.emptyWrap}>
                 <Text style={styles.emptyText}>
                   No reviews yet. Be the first one to write a review.
@@ -225,12 +242,19 @@ export default function AcademyDetailScreen({ navigation, route }) {
             ) : (
               <View>
                 <View style={styles.revHead}>
-                  <Text style={styles.revBig}>{avgRating.toFixed(1)}</Text>
+                  <Text style={styles.revBig}>{effAvg.toFixed(1)}</Text>
                   <View>
-                    <Stars value={avgRating} size={18} />
-                    <Text style={styles.revCountDark}>{totalReviews} ratings</Text>
+                    <Stars value={effAvg} size={18} />
+                    <Text style={styles.revCountDark}>{effCount} ratings</Text>
                   </View>
                 </View>
+                {apiReviews.map((r) => (
+                  <View key={`api-${r.id}`} style={styles.revItem}>
+                    <Text style={styles.revName}>User</Text>
+                    <Stars value={r.rating} size={14} />
+                    {r.text ? <Text style={styles.revText}>{r.text}</Text> : null}
+                  </View>
+                ))}
                 {myReviews.map((r, i) => (
                   <View key={`m-${i}`} style={styles.revItem}>
                     <Text style={styles.revName}>{r.name}</Text>

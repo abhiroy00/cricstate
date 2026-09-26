@@ -39,6 +39,7 @@ function initialsOf(name = "") {
 export function roleEntryToPerson(item = {}, rank = 1) {
   return {
     id: String(item.id ?? rank),
+    backendId: item.backendId || null,
     name: item.name ?? "Unknown",
     initials: item.initials || initialsOf(item.name),
     bg: item.bg || "#6E7F80",
@@ -113,6 +114,7 @@ export default function RoleBoardScreen({ navigation, route }) {
         if (!alive || !page?.items?.length) return;
         const remote = page.items.map((l) => ({
           id: `api-${l.id}`,
+          backendId: l.id,
           name: l.name,
           matches: 0,
           points: 0,
