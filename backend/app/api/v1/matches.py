@@ -11,9 +11,26 @@ from app.schemas.common import success_response
 from app.schemas.match import MatchCreate, MatchOut, MatchUpdate, StartMatchRequest, TossRequest
 from app.schemas.scoring import InningsOut
 from app.services.match_service import MatchService
+from app.services.scoring_service import ScoringService
 from app.utils.pagination import PageParams
+from app.websocket.manager import broadcast
 
 router = APIRouter(prefix="/matches", tags=["matches"])
+
+
+async def _push_live(match_id: uuid.UUID, db: AsyncSession) -> None:
+    try:
+        state = await ScoringService(db).get_live_state(match_id)
+        await broadcast(
+            str(match_id),
+            {
+                "type": "live_update",
+                "match_id": str(match_id),
+                "live": state.model_dump(mode="json"),
+            },
+        )
+    except Exception:
+        pass
 
 
 @router.post("")
@@ -86,4 +103,6 @@ async def start_match(
 ):
     service = MatchService(db)
     innings = await service.start_match(current_user, match_id, payload)
-    return success_response(InningsOut.model_validate(innings).model_dump(), message="Match started")
+    response = success_response(InningsOut.model_validate(innings).model_dump(), message="Match started")
+    await _push_live(match_id, db)
+    return response

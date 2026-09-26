@@ -1,8 +1,13 @@
-import { useState } from "react";
-import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
+import {
+  getMyMembership,
+  listPlans,
+  subscribe,
+} from "../../services/membershipService";
 
 const BG = "#141414";
 const CARD = "#1F2A2E";
@@ -108,6 +113,57 @@ function PhoneMock() {
 
 export default function ProBenefitsScreen({ navigation }) {
   const [selectedPlan, setSelectedPlan] = useState("3m");
+  const [plans, setPlans] = useState(PLANS);
+  const [membership, setMembership] = useState(null);
+  const [subscribing, setSubscribing] = useState(false);
+
+  // Real plans + membership from backend; falls back to bundled plans offline.
+  useEffect(() => {
+    let alive = true;
+    listPlans()
+      .then((items) => {
+        if (!alive || !items || items.length === 0) return;
+        setPlans(
+          items.map((p, i) => ({
+            key: p.code,
+            code: p.code,
+            title: p.name,
+            price: `₹${p.price}`,
+            sub: p.duration_days ? `${p.duration_days} days` : "Limited period",
+            popular: i === 1,
+          }))
+        );
+        setSelectedPlan((cur) =>
+          cur === "3m" ? items[0].code : cur
+        );
+      })
+      .catch(() => {});
+    getMyMembership()
+      .then((m) => {
+        if (alive) setMembership(m);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function handleSubscribe() {
+    if (membership?.status === "ACTIVE") return;
+    setSubscribing(true);
+    try {
+      const m = await subscribe(selectedPlan);
+      setMembership(m);
+      Alert.alert("Subscribed", `You are now PRO (${m.plan_name || selectedPlan}).`);
+    } catch (err) {
+      Alert.alert(
+        "Subscribe failed",
+        err?.response?.data?.message || err?.message || "Something went wrong"
+      );
+    } finally {
+      setSubscribing(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -151,7 +207,7 @@ export default function ProBenefitsScreen({ navigation }) {
         </View>
 
         <View style={styles.plansRow}>
-          {PLANS.map((p) => {
+          {plans.map((p) => {
             const active = p.key === selectedPlan;
             return (
               <TouchableOpacity
@@ -192,8 +248,14 @@ export default function ProBenefitsScreen({ navigation }) {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.cta} activeOpacity={0.85}>
-          <Text style={styles.ctaText}>Become a better cricketer</Text>
+        <TouchableOpacity style={styles.cta} activeOpacity={0.85} onPress={handleSubscribe} disabled={subscribing}>
+          <Text style={styles.ctaText}>
+            {subscribing
+              ? "Subscribing…"
+              : membership?.status === "ACTIVE"
+                ? `PRO active (${membership.plan_name || "subscribed"})`
+                : "Become a better cricketer"}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

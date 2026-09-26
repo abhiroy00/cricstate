@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DrawerActions } from "@react-navigation/native";
 
 import { useAuth } from "../../hooks/useAuth";
+import { getHomeFeed } from "../../services/homeService";
 import { CLUB_POSTS, CONTACT_MATCHES, CRICKETERS } from "../../data/feedData";
 import SearchOverlay from "../../components/SearchOverlay";
 import AppLogo from "../../components/AppLogo";
@@ -529,10 +530,10 @@ function ClubFeed({ userName }) {
 
 const MATCH_FILTERS = ["All", "Live", "Upcoming", "Results"];
 
-function AllMatchesView({ onBack }) {
+function AllMatchesView({ onBack, matches = CONTACT_MATCHES }) {
   const [filter, setFilter] = useState("All");
 
-  const visible = CONTACT_MATCHES.filter((m) => {
+  const visible = matches.filter((m) => {
     if (filter === "All") return true;
     if (filter === "Live") return m.status === "Live";
     if (filter === "Upcoming") return m.status === "Upcoming";
@@ -676,6 +677,36 @@ function NotificationsPanel({ visible, onClose, items, onMarkAllRead }) {
   );
 }
 
+const FEED_STATUS = { LIVE: "Live", SCHEDULED: "Upcoming", COMPLETED: "Completed" };
+
+function feedMatchToCard(m) {
+  return {
+    id: String(m.id),
+    owner: m.venue || "Community",
+    tournament: m.match_type || "Match",
+    league: m.venue || "",
+    status: FEED_STATUS[m.status] || "In review",
+    meta: `${m.overs_limit || ""} Ov.${m.venue ? `  |  ${m.venue}` : ""}`,
+    team1: m.team_a?.name || "Team A",
+    score1: "-",
+    overs1: "",
+    team2: m.team_b?.name || "Team B",
+    score2: "-",
+    overs2: "",
+    result: m.result_summary || "",
+  };
+}
+
+function feedPlayerToCard(p, index) {
+  return {
+    id: String(p.id ?? index),
+    name: p.full_name || "Cricketer",
+    emoji: "🏏",
+    runs: p.role ? String(p.role).replace("_", " ") : "",
+    wkts: "",
+  };
+}
+
 export default function HomeScreen({ navigation }) {
   const { user } = useAuth();
   const [tab, setTab] = useState("foryou");
@@ -684,6 +715,35 @@ export default function HomeScreen({ navigation }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifs, setNotifs] = useState(NOTIFICATIONS);
+  const [feed, setFeed] = useState(null);
+
+  // Real feed from backend; bundled mocks stay as fallback offline.
+  useEffect(() => {
+    let alive = true;
+    getHomeFeed()
+      .then((data) => {
+        if (alive) setFeed(data);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const contactMatches = useMemo(() => {
+    if (!feed) return CONTACT_MATCHES;
+    const all = [
+      ...(feed.live_matches || []),
+      ...(feed.upcoming_matches || []),
+      ...(feed.recent_results || []),
+    ].map(feedMatchToCard);
+    return all.length > 0 ? all : CONTACT_MATCHES;
+  }, [feed]);
+
+  const cricketers = useMemo(() => {
+    if (!feed?.suggested_cricketers?.length) return CRICKETERS;
+    return feed.suggested_cricketers.map(feedPlayerToCard);
+  }, [feed]);
 
   const hasUnread = notifs.some((n) => !n.read);
 
@@ -734,7 +794,7 @@ export default function HomeScreen({ navigation }) {
           <View style={{ height: 24 }} />
         </ScrollView>
       ) : showAllMatches ? (
-        <AllMatchesView onBack={() => setShowAllMatches(false)} />
+        <AllMatchesView onBack={() => setShowAllMatches(false)} matches={contactMatches} />
       ) : (
         <ScrollView
           style={styles.body}
@@ -752,7 +812,7 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
           <FlatList
-            data={CONTACT_MATCHES}
+            data={contactMatches}
             keyExtractor={(i) => i.id}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -769,7 +829,7 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           </View>
           <FlatList
-            data={CRICKETERS}
+            data={cricketers}
             keyExtractor={(i) => i.id}
             horizontal
             showsHorizontalScrollIndicator={false}

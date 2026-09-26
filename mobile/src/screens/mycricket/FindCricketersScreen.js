@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  FlatList,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -10,6 +11,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
+import { listPlayers } from "../../services/playerService";
+import { followUser, unfollowUser } from "../../services/profileService";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -110,11 +113,32 @@ function NetworkIllustration() {
 export default function FindCricketersScreen({ navigation }) {
   const [tab, setTab] = useState("CONTACTS");
   const [syncing, setSyncing] = useState(false);
+  const [players, setPlayers] = useState(null);
+  const [following, setFollowing] = useState({});
 
-  const handleFind = () => {
+  const handleFind = async () => {
     if (syncing) return;
     setSyncing(true);
-    setTimeout(() => setSyncing(false), 1500);
+    try {
+      const page = await listPlayers({ limit: 20 });
+      setPlayers(page.items || []);
+    } catch {
+      setPlayers([]);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const toggleFollow = async (player) => {
+    if (!player.user_id) return;
+    const on = !!following[player.id];
+    setFollowing((p) => ({ ...p, [player.id]: !p[player.id] }));
+    try {
+      if (on) await unfollowUser(player.user_id);
+      else await followUser(player.user_id);
+    } catch {
+      setFollowing((p) => ({ ...p, [player.id]: on }));
+    }
   };
 
   return (
@@ -173,6 +197,54 @@ export default function FindCricketersScreen({ navigation }) {
         <TouchableOpacity style={styles.cta} activeOpacity={0.85} onPress={handleFind}>
           <Text style={styles.ctaText}>{syncing ? "Syncing..." : "Find my friends"}</Text>
         </TouchableOpacity>
+
+        {players && (
+          <View style={styles.resultsWrap}>
+            <Text style={styles.resultsTitle}>
+              {players.length === 0
+                ? "No cricketers found yet"
+                : `${players.length} cricketers on CricState`}
+            </Text>
+            <FlatList
+              data={players}
+              keyExtractor={(i) => String(i.id)}
+              scrollEnabled={false}
+              renderItem={({ item }) => (
+                <View style={styles.playerRow}>
+                  <View style={styles.playerAvatar}>
+                    <Text style={styles.playerAvatarText}>
+                      {(item.full_name || "?").charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.playerMid}>
+                    <Text style={styles.playerName} numberOfLines={1}>
+                      {item.full_name}
+                    </Text>
+                    <Text style={styles.playerRole}>
+                      {String(item.role || "").replace("_", " ")}
+                    </Text>
+                  </View>
+                  {item.user_id ? (
+                    <TouchableOpacity
+                      style={[styles.followBtn, following[item.id] && styles.followBtnDone]}
+                      activeOpacity={0.8}
+                      onPress={() => toggleFollow(item)}
+                    >
+                      <Text
+                        style={[
+                          styles.followBtnText,
+                          following[item.id] && styles.followBtnTextDone,
+                        ]}
+                      >
+                        {following[item.id] ? "Following" : "Follow"}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              )}
+            />
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -328,5 +400,69 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "500",
+  },
+  resultsWrap: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  resultsTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111",
+    marginBottom: 10,
+  },
+  playerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  playerAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: TEAL,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  playerAvatarText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  playerMid: {
+    flex: 1,
+  },
+  playerName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111",
+  },
+  playerRole: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 2,
+    textTransform: "capitalize",
+  },
+  followBtn: {
+    backgroundColor: TEAL,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  followBtnDone: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: TEAL,
+  },
+  followBtnText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  followBtnTextDone: {
+    color: TEAL,
   },
 });

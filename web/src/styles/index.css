@@ -362,6 +362,16 @@ body {
   flex-wrap: wrap;
 }
 
+.stat-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-bottom: 20px;
+}
+
 .detail-subtitle {
   color: var(--color-muted);
   margin: 2px 0 16px;

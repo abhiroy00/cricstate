@@ -11,8 +11,25 @@ from app.schemas.common import success_response
 from app.schemas.match import MatchOut, StartMatchRequest
 from app.schemas.scoring import DeliveryCreate, DeliveryOut, InningsOut, LiveStateOut, MatchScorecardOut, NewBowlerRequest
 from app.services.scoring_service import ScoringService
+from app.websocket.manager import broadcast
 
 router = APIRouter(prefix="/scoring", tags=["scoring"])
+
+
+async def _push_live(match_id: uuid.UUID, db: AsyncSession) -> None:
+    """Best-effort push - WS failures must never break the HTTP response."""
+    try:
+        state = await ScoringService(db).get_live_state(match_id)
+        await broadcast(
+            str(match_id),
+            {
+                "type": "live_update",
+                "match_id": str(match_id),
+                "live": state.model_dump(mode="json"),
+            },
+        )
+    except Exception:
+        pass
 
 
 @router.post("/{match_id}/deliveries")
@@ -24,7 +41,9 @@ async def record_delivery(
 ):
     service = ScoringService(db)
     delivery = await service.record_delivery(current_user, match_id, payload)
-    return success_response(DeliveryOut.model_validate(delivery).model_dump(), message="Delivery recorded")
+    response = success_response(DeliveryOut.model_validate(delivery).model_dump(), message="Delivery recorded")
+    await _push_live(match_id, db)
+    return response
 
 
 @router.delete("/{match_id}/deliveries/last")
@@ -35,7 +54,9 @@ async def undo_last_delivery(
 ):
     service = ScoringService(db)
     await service.undo_last_delivery(current_user, match_id)
-    return success_response(None, message="Last delivery undone")
+    response = success_response(None, message="Last delivery undone")
+    await _push_live(match_id, db)
+    return response
 
 
 @router.post("/{match_id}/next-over")
@@ -47,7 +68,9 @@ async def select_next_bowler(
 ):
     service = ScoringService(db)
     innings = await service.select_next_bowler(current_user, match_id, payload)
-    return success_response(InningsOut.model_validate(innings).model_dump(), message="Bowler selected")
+    response = success_response(InningsOut.model_validate(innings).model_dump(), message="Bowler selected")
+    await _push_live(match_id, db)
+    return response
 
 
 @router.post("/{match_id}/next-innings")
@@ -59,7 +82,9 @@ async def start_next_innings(
 ):
     service = ScoringService(db)
     innings = await service.start_next_innings(current_user, match_id, payload)
-    return success_response(InningsOut.model_validate(innings).model_dump(), message="Next innings started")
+    response = success_response(InningsOut.model_validate(innings).model_dump(), message="Next innings started")
+    await _push_live(match_id, db)
+    return response
 
 
 @router.post("/{match_id}/end")
@@ -70,7 +95,9 @@ async def end_match(
 ):
     service = ScoringService(db)
     match: Match = await service.end_match(current_user, match_id)
-    return success_response(MatchOut.model_validate(match).model_dump(), message="Match ended")
+    response = success_response(MatchOut.model_validate(match).model_dump(), message="Match ended")
+    await _push_live(match_id, db)
+    return response
 
 
 @router.get("/{match_id}/live")

@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Date, ForeignKey, String, Text
+from sqlalchemy import Date, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -25,5 +25,13 @@ class Profile(TimestampMixin, Base):
     country: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     cover_photo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     website_url: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
+
+    # --- Mobile Profile UI fields (WhatsApp UI screen) ---
+    # Cricket identity shown as Playing role / Batting style / Bowling style.
+    playing_role: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+    batting_style: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    bowling_style: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    # How many times someone else opened this profile.
+    profile_views: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     user: Mapped["User"] = relationship(back_populates="profile")

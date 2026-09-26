@@ -5,6 +5,11 @@ export async function createPlayer(payload) {
   return response.data.data;
 }
 
+export async function listPlayers({ search, role, limit = 20, offset = 0 } = {}) {
+  const response = await api.get("/players", { params: { search, role, limit, offset } });
+  return response.data.data;
+}
+
 export async function getPlayer(playerId) {
   const response = await api.get(`/players/${playerId}`);
   return response.data.data;

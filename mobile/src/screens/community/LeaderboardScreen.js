@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
+import { listListings } from "../../services/engagementService";
 import {
   BackGlyph,
   FilterGlyph,
@@ -152,9 +153,37 @@ export default function LeaderboardScreen({
   const [regName, setRegName] = useState("");
   const [regPhone, setRegPhone] = useState("");
   const [regDone, setRegDone] = useState(false);
+  const [apiEntries, setApiEntries] = useState([]);
   const insets = useSafeAreaInsets();
 
-  const visible = expanded ? list : list.slice(0, 5);
+  // Real directory listings from backend, merged above bundled seeds.
+  useEffect(() => {
+    let alive = true;
+    listListings({ category: title, limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items?.length) return;
+        setApiEntries(
+          page.items.map((l) => ({
+            id: `api-${l.id}`,
+            name: l.name,
+            medal: !!l.is_verified,
+            matches: 0,
+            points: 0,
+            rate: [l.contact, l.city].filter(Boolean).join(", "),
+          }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [title]);
+
+  const fullList = useMemo(
+    () => [...apiEntries, ...list],
+    [apiEntries, list]
+  );
+  const visible = expanded ? fullList : fullList.slice(0, 5);
 
   const submitReg = () => {
     if (!regName.trim() || regPhone.trim().length < 10) return;

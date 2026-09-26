@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn, ShareGlyph } from "../../components/HeaderIcon";
+import { getPlayerLeaderboard } from "../../services/leaderboardService";
 import {
   BALL_TABS,
   SKILL_PILLS,
@@ -99,19 +100,69 @@ function RankRow({ item, index, skill }) {
   );
 }
 
+const API_BG = ["#1E63D0", "#0B6E4F", "#9A3412", "#6B21A8"];
+
+function apiRowToItem(row, index, skill) {
+  const base = {
+    id: row.player?.id || String(index),
+    name: row.player?.full_name || "Unknown",
+    city: "",
+    bg: API_BG[index % API_BG.length],
+    pro: false,
+  };
+  if (skill === "Bowling") {
+    return {
+      ...base,
+      inn: "–",
+      runs: row.wickets ?? 0,
+      avg: "–",
+      sr: row.economy ?? 0,
+    };
+  }
+  return {
+    ...base,
+    inn: "–",
+    runs: row.runs ?? 0,
+    avg: row.average ?? "–",
+    sr: row.strike_rate ?? 0,
+  };
+}
+
 export default function CricLeaderboardDetailScreen({ navigation, route }) {
   const type = route?.params?.type === "womens" ? "womens" : "overall";
   const [ball, setBall] = useState("Leather");
   const [skill, setSkill] = useState("Batting");
   const [infoOpen, setInfoOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [apiRows, setApiRows] = useState(null);
+
+  // Real batting/bowling leaderboard from backend; mocks stay as fallback.
+  useEffect(() => {
+    if (skill === "Fielding") return;
+    let alive = true;
+    setApiRows(null);
+    getPlayerLeaderboard({
+      category: skill === "Bowling" ? "bowling" : "batting",
+      limit: 20,
+    })
+      .then((data) => {
+        if (alive && data?.items) {
+          setApiRows(data.items.map((r, i) => apiRowToItem(r, i, skill)));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [skill]);
 
   const full = useMemo(() => boardFor(type, skill), [type, skill]);
   const list = useMemo(() => {
+    if (ball === "Leather" && apiRows && apiRows.length > 0) return apiRows;
     if (ball === "Tennis") return full.slice(0, 5);
     if (ball === "Box cricket") return full.slice(0, 3);
     return full;
-  }, [full, ball]);
+  }, [full, ball, apiRows]);
 
   const title = type === "womens" ? "Women's leaderboard" : "Leaderboard";
 

@@ -307,9 +307,9 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.findLink}>Find Cricketers</Text>
         </TouchableOpacity>
 
-        <LinkRow label="Edit notification preferences" onPress={() => goInfo("Notification Preferences")} />
+        <LinkRow label="Edit notification preferences" onPress={() => navigation.navigate("NotificationPrefs")} />
         <LinkRow label="Change language" onPress={() => goInfo("Language")} />
-        <LinkRow label="Purchase history" onPress={() => goInfo("Purchase History")} />
+        <LinkRow label="Purchase history" onPress={() => navigation.navigate("Orders")} />
 
         <View style={styles.dangerRow}>
           <TouchableOpacity style={styles.dangerBtn} activeOpacity={0.8} onPress={doLogout}>

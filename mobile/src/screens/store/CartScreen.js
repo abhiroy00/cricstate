@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { formatINR, RED, TEAL } from "../../data/storeData";
+import { createOrder } from "../../services/storeService";
 import { useCart } from "./StoreCartContext";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
 import DreamHeader from "../../components/DreamHeader";
@@ -22,9 +24,37 @@ const COUPON_PCT = 0.2;
 export default function CartScreen({ navigation }) {
   const { lines, setQty, remove, subtotal, savings, clear } = useCart();
   const [placed, setPlaced] = useState(false);
+  const [placing, setPlacing] = useState(false);
   const [coupon, setCoupon] = useState("");
   const [couponOn, setCouponOn] = useState(false);
   const [couponErr, setCouponErr] = useState("");
+
+  async function placeOrder() {
+    if (placing) return;
+    // Only backend products can be ordered for real; pure-mock carts
+    // keep the local confirmation flow.
+    const items = lines
+      .filter((l) => l.product?.backendId)
+      .map((l) => ({ product_id: l.product.backendId, quantity: l.qty }));
+    if (items.length === 0) {
+      clear();
+      setPlaced(true);
+      return;
+    }
+    setPlacing(true);
+    try {
+      await createOrder(items);
+      clear();
+      setPlaced(true);
+    } catch (err) {
+      Alert.alert(
+        "Order failed",
+        err?.response?.data?.message || err?.message || "Something went wrong"
+      );
+    } finally {
+      setPlacing(false);
+    }
+  }
 
   const shipping = subtotal === 0 || subtotal >= FREE_SHIP_ABOVE ? 0 : SHIP_FEE;
   const discount = couponOn ? Math.round(subtotal * COUPON_PCT) : 0;
@@ -209,13 +239,11 @@ export default function CartScreen({ navigation }) {
             <TouchableOpacity
               style={styles.checkout}
               activeOpacity={0.85}
-              onPress={() => {
-                clear();
-                setPlaced(true);
-              }}
+              onPress={placeOrder}
+              disabled={placing}
             >
               <Text style={styles.checkoutText}>
-                Place order • {formatINR(total)}
+                {placing ? "Placing order…" : `Place order • ${formatINR(total)}`}
               </Text>
             </TouchableOpacity>
           </View>

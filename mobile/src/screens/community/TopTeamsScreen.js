@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn, ShareGlyph } from "../../components/HeaderIcon";
+import { getTeamLeaderboard } from "../../services/leaderboardService";
 import {
   TEAM_BALL_TABS,
   TOP_TEAMS_LEATHER,
@@ -70,14 +71,41 @@ function TeamRow({ item, index }) {
   );
 }
 
+const AVATAR_BG = ["#1E63D0", "#0B6E4F", "#9A3412", "#6B21A8", "#B45309"];
+
+function toRow(row, index) {
+  return {
+    id: row.team?.id || String(index + 1),
+    name: row.team?.name || "Unknown team",
+    city: row.team?.home_ground || "",
+    matches: row.played ?? 0,
+    wins: row.won ?? 0,
+    bg: AVATAR_BG[index % AVATAR_BG.length],
+  };
+}
+
 export default function TopTeamsScreen({ navigation }) {
   const [ball, setBall] = useState("Leather ball");
   const [infoOpen, setInfoOpen] = useState(false);
+  const [apiTeams, setApiTeams] = useState(null);
 
-  const list = useMemo(
-    () => (ball === "Leather ball" ? TOP_TEAMS_LEATHER : TOP_TEAMS_TENNIS),
-    [ball]
-  );
+  // Real leaderboard from backend; falls back to bundled mock data offline.
+  useEffect(() => {
+    let alive = true;
+    getTeamLeaderboard({ limit: 20 })
+      .then((data) => {
+        if (alive && data?.items) setApiTeams(data.items.map(toRow));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const list = useMemo(() => {
+    if (ball === "Leather ball" && apiTeams && apiTeams.length > 0) return apiTeams;
+    return ball === "Leather ball" ? TOP_TEAMS_LEATHER : TOP_TEAMS_TENNIS;
+  }, [ball, apiTeams]);
 
   const shareBoard = () => {
     Share.share({ message: `Top teams (${ball}) on CricState!` }).catch(

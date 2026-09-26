@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../hooks/useAuth";
+import { listProducts } from "../../services/storeService";
 import {
   BANNERS,
   CATEGORIES,
@@ -21,7 +22,6 @@ import {
   RED,
   TEAL,
   formatINR,
-  productsIn,
 } from "../../data/storeData";
 import ProductCard from "./ProductCard";
 import ProductDetailModal from "./ProductDetailModal";
@@ -58,14 +58,14 @@ function HeroBanner({ item, onPress }) {
   );
 }
 
-function StoreSearch({ visible, onClose, onPick }) {
+function StoreSearch({ visible, onClose, onPick, products = PRODUCTS }) {
   const [q, setQ] = useState("");
   const query = q.trim().toLowerCase();
   const hits = query
-    ? PRODUCTS.filter((p) =>
+    ? products.filter((p) =>
         `${p.name} ${p.brand}`.toLowerCase().includes(query)
       )
-    : PRODUCTS.slice(0, 5);
+    : products.slice(0, 5);
 
   return (
     <Modal
@@ -206,6 +206,44 @@ export default function StoreScreen({ navigation }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [policy, setPolicy] = useState(null);
+  const [apiProducts, setApiProducts] = useState([]);
+
+  // Real products from backend, mapped onto the card shape; mocks stay as fallback.
+  useEffect(() => {
+    let alive = true;
+    listProducts({ limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items) return;
+        setApiProducts(
+          page.items.map((p) => ({
+            id: `api-${p.id}`,
+            backendId: p.id,
+            name: p.name,
+            brand: "CricState",
+            price: p.price,
+            mrp: p.mrp ?? p.price,
+            rating: 4.5,
+            reviews: 0,
+            emoji: "👕",
+            bg: "#E8EEF7",
+            badge: null,
+            shipsTomorrow: false,
+            sizes: ["S", "M", "L", "XL", "XXL"],
+            collections:
+              p.category === "BESTSELLER" ? ["bestsellers", "new"] : ["new"],
+          }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const allProducts = useMemo(
+    () => [...apiProducts, ...PRODUCTS],
+    [apiProducts]
+  );
   const bannerRef = useRef(null);
   const bannerIndex = useRef(0);
   const bannerTouch = useRef(false);
@@ -233,18 +271,18 @@ export default function StoreScreen({ navigation }) {
 
   const firstName = user?.full_name?.split(" ")?.[0] || "Anshmeet";
   const bestPages = useMemo(() => {
-    const all = productsIn("bestsellers");
+    const all = allProducts.filter((p) => (p.collections || []).includes("bestsellers"));
     const pages = [];
     for (let i = 0; i < all.length; i += 1) pages.push(all.slice(i, i + 1));
     return pages;
-  }, []);
+  }, [allProducts]);
   const [bestPage, setBestPage] = useState(0);
   const newPages = useMemo(() => {
-    const all = productsIn("new");
+    const all = allProducts.filter((p) => (p.collections || []).includes("new"));
     const pages = [];
     for (let i = 0; i < all.length; i += 1) pages.push(all.slice(i, i + 1));
     return pages;
-  }, []);
+  }, [allProducts]);
   const [newPage, setNewPage] = useState(0);
 
   // Product cards: har 3 second me next page (user drag kare to ruko, loop me)
@@ -510,6 +548,7 @@ export default function StoreScreen({ navigation }) {
         visible={searchOpen}
         onClose={() => setSearchOpen(false)}
         onPick={setSelected}
+        products={allProducts}
       />
 
       <ProductDetailModal

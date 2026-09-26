@@ -13,6 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import FilterSheet from "../../components/FilterSheet";
+import { listListings } from "../../services/engagementService";
 import { ROLES } from "./roleData";
 import DreamHeader from "../../components/DreamHeader";
 import {
@@ -103,6 +104,31 @@ export default function RoleBoardScreen({ navigation, route }) {
       navigation.setParams({ newEntry: null });
     }
   }, [newEntry, navigation]);
+
+  // Real directory listings from backend, merged above bundled seeds.
+  useEffect(() => {
+    let alive = true;
+    listListings({ category: role.title, limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items?.length) return;
+        const remote = page.items.map((l) => ({
+          id: `api-${l.id}`,
+          name: l.name,
+          matches: 0,
+          points: 0,
+          feeDay: l.contact || "",
+          feeMatch: l.city || "",
+          emoji: "🧑🏽",
+          bg: "#E8EEF7",
+          city: l.city || "India",
+        }));
+        setEntries((p) => [...remote, ...p.filter((e) => !String(e.id).startsWith("api-"))]);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [roleKey]);
 
   useEffect(() => {
     setEntries(role.seed);

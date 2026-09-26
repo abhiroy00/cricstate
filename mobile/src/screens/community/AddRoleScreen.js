@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../hooks/useAuth";
+import { createListing } from "../../services/engagementService";
 import { ROLES } from "./roleData";
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
@@ -36,10 +37,19 @@ export default function AddRoleScreen({ navigation, route }) {
   const [exp, setExp] = useState("");
 
   const publish = () => {
+    const entryName = name.trim() || "New Member";
+    // Persist to backend directory in background; board updates via params.
+    createListing({
+      category: role.title,
+      name: entryName,
+      city: city || null,
+      description: exp || null,
+      contact: phone || null,
+    }).catch(() => {});
     navigation.navigate("RoleBoard", {
       role: roleKey,
       newEntry: {
-        name: name.trim() || "New Member",
+        name: entryName,
         matches: 0,
         points: 0,
         feeDay: feeDay ? `₹${feeDay}/day` : "₹-/day",

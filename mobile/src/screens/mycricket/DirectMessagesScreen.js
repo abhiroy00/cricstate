@@ -1,7 +1,16 @@
-import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FlatList,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
+import { listMyConversations } from "../../services/engagementService";
 
 const RED = "#E01A22";
 const TEAL = "#00A651";
@@ -26,6 +35,21 @@ function ChatIllustration() {
 }
 
 export default function DirectMessagesScreen({ navigation }) {
+  const [conversations, setConversations] = useState(null);
+
+  const load = useCallback(async () => {
+    try {
+      const page = await listMyConversations({ limit: 20 });
+      setConversations(page.items || []);
+    } catch {
+      setConversations([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <StatusBar barStyle="light-content" backgroundColor={RED} />
@@ -41,16 +65,49 @@ export default function DirectMessagesScreen({ navigation }) {
         </TouchableOpacity>
       </DreamHeader>
 
-      <View style={styles.body}>
-        <ChatIllustration />
-        <Text style={styles.emptyText}>
-          You have not received any message yet. You can also initiate a conversation with your team
-          mates or opponents
-        </Text>
-        <TouchableOpacity style={styles.sendBtn} activeOpacity={0.85}>
-          <Text style={styles.sendBtnText}>Send message</Text>
-        </TouchableOpacity>
-      </View>
+      {conversations && conversations.length > 0 ? (
+        <FlatList
+          data={conversations}
+          keyExtractor={(i) => i.id}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          onRefresh={load}
+          refreshing={conversations === null}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.row}
+              activeOpacity={0.7}
+              onPress={() =>
+                navigation?.navigate?.("Conversation", { conversationId: item.id })
+              }
+            >
+              <View style={styles.rowAvatar}>
+                <Text style={styles.rowAvatarText}>💬</Text>
+              </View>
+              <View style={styles.rowMid}>
+                <Text style={styles.rowTitle} numberOfLines={1}>
+                  {item.last_message?.body || "New conversation"}
+                </Text>
+                <Text style={styles.rowSub} numberOfLines={1}>
+                  {item.member_ids?.length || 2} members
+                </Text>
+              </View>
+              <Text style={styles.rowArrow}>›</Text>
+            </TouchableOpacity>
+          )}
+        />
+      ) : (
+        <View style={styles.body}>
+          <ChatIllustration />
+          <Text style={styles.emptyText}>
+            You have not received any message yet. You can also initiate a conversation with your team
+            mates or opponents
+          </Text>
+          <TouchableOpacity style={styles.sendBtn} activeOpacity={0.85}>
+            <Text style={styles.sendBtnText}>Send message</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -99,6 +156,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 40,
+  },
+  list: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 24,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+  },
+  rowAvatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "#F2F2F2",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  rowAvatarText: {
+    fontSize: 22,
+  },
+  rowMid: {
+    flex: 1,
+  },
+  rowTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111",
+  },
+  rowSub: {
+    fontSize: 13,
+    color: "#888",
+    marginTop: 2,
+  },
+  rowArrow: {
+    fontSize: 24,
+    color: "#BBB",
+    marginLeft: 8,
   },
   art: {
     width: 220,

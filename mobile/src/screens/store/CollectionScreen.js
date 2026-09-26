@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { COLLECTIONS, productsIn, RED, TEAL } from "../../data/storeData";
+import { listProducts } from "../../services/storeService";
 import ProductCard from "./ProductCard";
 import ProductDetailModal from "./ProductDetailModal";
 import { useCart } from "./StoreCartContext";
@@ -38,10 +39,43 @@ export default function CollectionScreen({ navigation, route, collectionKey }) {
     COLLECTIONS[route?.name]?.desc ||
     "Handpicked gear from the CricHeroes Store.";
 
-  const items = useMemo(
-    () => sortProducts(productsIn(key), sort),
-    [key, sort]
-  );
+  // Real products from backend merged with bundled mocks.
+  const [apiProducts, setApiProducts] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    listProducts({ limit: 50 })
+      .then((page) => {
+        if (!alive || !page?.items) return;
+        setApiProducts(
+          page.items.map((p) => ({
+            id: `api-${p.id}`,
+            backendId: p.id,
+            name: p.name,
+            brand: "CricState",
+            price: p.price,
+            mrp: p.mrp ?? p.price,
+            rating: 4.5,
+            reviews: 0,
+            emoji: "👕",
+            bg: "#E8EEF7",
+            badge: null,
+            shipsTomorrow: false,
+            sizes: ["S", "M", "L", "XL", "XXL"],
+            collections: ["bestsellers", "new"],
+          }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const items = useMemo(() => {
+    const local = productsIn(key);
+    const merged = key === "bestsellers" || key === "new" ? [...apiProducts, ...local] : local;
+    return sortProducts(merged, sort);
+  }, [key, sort, apiProducts]);
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
