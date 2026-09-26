@@ -43,3 +43,25 @@ export async function deleteReview(listingId, reviewId) {
   );
   return response.data.data;
 }
+
+export async function listStreams({ matchId, status, limit = 20, offset = 0 } = {}) {
+  const response = await api.get("/streams", {
+    params: { match_id: matchId, status, limit, offset },
+  });
+  return response.data.data;
+}
+
+export async function createStream(payload) {
+  const response = await api.post("/streams", payload);
+  return response.data.data;
+}
+
+export async function updateStream(streamId, payload) {
+  const response = await api.patch(`/streams/${streamId}`, payload);
+  return response.data.data;
+}
+
+export async function deleteStream(streamId) {
+  const response = await api.delete(`/streams/${streamId}`);
+  return response.data.data;
+}

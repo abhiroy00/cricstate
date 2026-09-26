@@ -32,6 +32,19 @@ class Settings(BaseSettings):
     BOOTSTRAP_SUPER_ADMIN_USERNAME: str | None = None
     BOOTSTRAP_SUPER_ADMIN_PASSWORD: str | None = None
 
+    # Payments: provider is a seam — "test" records everything locally with
+    # no external call. Set PAYMENT_PROVIDER/KEY/WEBHOOK_SECRET for a real
+    # gateway (Razorpay/Stripe); webhook signatures are verified with
+    # HMAC-SHA256 only when PAYMENT_WEBHOOK_SECRET is set.
+    PAYMENT_PROVIDER: str = "test"
+    PAYMENT_KEY: str = ""
+    PAYMENT_WEBHOOK_SECRET: str = ""
+
+    # Streams: FastAPI only stores metadata (never video bytes). The ingest
+    # server (mediamtx) + transcoder push HLS to the CDN; playback_url and
+    # viewer heartbeats are recorded here.
+    STREAM_INGEST_BASE_URL: str = ""
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

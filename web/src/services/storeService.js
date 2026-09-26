@@ -31,3 +31,25 @@ export async function listMyOrders({ limit = 20, offset = 0 } = {}) {
   const response = await api.get("/store/orders/me", { params: { limit, offset } });
   return response.data.data;
 }
+
+export async function getOrder(orderId) {
+  const response = await api.get(`/store/orders/${orderId}`);
+  return response.data.data;
+}
+
+export async function payOrder(orderId) {
+  const response = await api.post(`/store/orders/${orderId}/pay`);
+  return response.data.data;
+}
+
+export async function confirmOrderPayment(orderId, paymentId) {
+  const response = await api.post(`/store/orders/${orderId}/confirm`, {
+    payment_id: paymentId,
+  });
+  return response.data.data;
+}
+
+export async function cancelOrder(orderId) {
+  const response = await api.post(`/store/orders/${orderId}/cancel`);
+  return response.data.data;
+}

@@ -14,6 +14,12 @@ class OrderStatus(str, Enum):
     CANCELLED = "CANCELLED"
 
 
+class PaymentStatus(str, Enum):
+    INITIATED = "INITIATED"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+
+
 class Product(UUIDPkMixin, TimestampMixin, Base):
     __tablename__ = "products"
 
@@ -42,6 +48,9 @@ class Order(UUIDPkMixin, TimestampMixin, Base):
     items: Mapped[List["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan", lazy="selectin"
     )
+    payments: Mapped[List["Payment"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan", lazy="selectin"
+    )
 
 
 class OrderItem(Base):
@@ -58,3 +67,31 @@ class OrderItem(Base):
 
     order: Mapped["Order"] = relationship(back_populates="items", lazy="selectin")
     product: Mapped["Product"] = relationship(back_populates="items", lazy="selectin")
+
+
+class Payment(UUIDPkMixin, TimestampMixin, Base):
+    """One payment attempt against an order.
+
+    provider="test" (default) records everything locally with no external
+    call — the seam where a real gateway (Razorpay/Stripe) plugs in later
+    via PAYMENT_PROVIDER/KEY/WEBHOOK_SECRET. provider_ref is the gateway's
+    payment id (or test_pay_<uuid> locally).
+    """
+
+    __tablename__ = "payments"
+
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("orders.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    provider: Mapped[str] = mapped_column(String(30), nullable=False, default="test")
+    provider_ref: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
+    amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    currency: Mapped[str] = mapped_column(String(10), nullable=False, default="INR")
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=PaymentStatus.INITIATED.value, index=True
+    )
+
+    order: Mapped["Order"] = relationship(back_populates="payments")

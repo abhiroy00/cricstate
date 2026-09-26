@@ -1,16 +1,23 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import DreamHeader from "../../components/DreamHeader";
 import { BackGlyph, HeaderIconBtn } from "../../components/HeaderIcon";
-import { listMyOrders } from "../../services/storeService";
+import {
+  cancelOrder,
+  confirmOrderPayment,
+  listMyOrders,
+  payOrder,
+} from "../../services/storeService";
 
 const TEAL = "#00A651";
 
@@ -28,6 +35,7 @@ function formatDate(iso) {
 
 export default function OrdersScreen({ navigation }) {
   const [orders, setOrders] = useState(null);
+  const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -41,6 +49,38 @@ export default function OrdersScreen({ navigation }) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Test-mode checkout: initiate + confirm back-to-back.
+  async function handlePay(orderId) {
+    setBusyId(orderId);
+    try {
+      const init = await payOrder(orderId);
+      await confirmOrderPayment(orderId, init.payment.id);
+      await load();
+    } catch (err) {
+      Alert.alert(
+        "Payment failed",
+        err?.response?.data?.message || err?.message || "Something went wrong"
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleCancel(orderId) {
+    setBusyId(orderId);
+    try {
+      await cancelOrder(orderId);
+      await load();
+    } catch (err) {
+      Alert.alert(
+        "Cancel failed",
+        err?.response?.data?.message || err?.message || "Something went wrong"
+      );
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
@@ -85,6 +125,28 @@ export default function OrdersScreen({ navigation }) {
                 {formatDate(item.created_at)} · {item.items?.length || 0} item(s)
               </Text>
               <Text style={styles.total}>₹{item.total}</Text>
+              {item.status === "PENDING" && (
+                <View style={styles.actions}>
+                  <TouchableOpacity
+                    style={styles.payBtn}
+                    activeOpacity={0.85}
+                    onPress={() => handlePay(item.id)}
+                    disabled={busyId === item.id}
+                  >
+                    <Text style={styles.payText}>
+                      {busyId === item.id ? "Processing…" : "Pay now"}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    activeOpacity={0.85}
+                    onPress={() => handleCancel(item.id)}
+                    disabled={busyId === item.id}
+                  >
+                    <Text style={styles.cancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           )}
         />
@@ -140,4 +202,22 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 12, fontWeight: "700", color: TEAL, textTransform: "uppercase" },
   meta: { fontSize: 13, color: "#888", marginTop: 6 },
   total: { fontSize: 18, fontWeight: "800", color: "#111", marginTop: 8 },
+  actions: { flexDirection: "row", marginTop: 12, gap: 10 },
+  payBtn: {
+    flex: 1,
+    backgroundColor: TEAL,
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  payText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  cancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  cancelText: { color: "#777", fontSize: 15, fontWeight: "600" },
 });

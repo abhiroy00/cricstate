@@ -20,7 +20,8 @@ from app.models.player_stats import PlayerMatchStats
 from app.models.profile import Profile
 from app.models.refresh_token import RefreshToken
 from app.models.role import Permission, Role, RolePermission, UserRole
-from app.models.store import Order, OrderItem, Product
+from app.models.store import Order, OrderItem, Payment, Product
+from app.models.stream import Stream
 from app.models.team import Team, TeamPlayer
 from app.models.team_invite import TeamInvite
 from app.models.tournament import Tournament, TournamentTeam
@@ -50,6 +51,8 @@ __all__ = [
     "Product",
     "Order",
     "OrderItem",
+    "Payment",
+    "Stream",
     "MembershipPlan",
     "Membership",
     "NotificationPreference",

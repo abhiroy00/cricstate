@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { extractErrorMessage } from "../../services/api";
 import { getMatch } from "../../services/matchService";
 import { getLiveState, getScorecard } from "../../services/scoringService";
+import { getStreamByMatch } from "../../services/streamService";
 import { colors } from "../../utils/theme";
 
 function LiveScoreView({ state }) {
@@ -65,6 +66,7 @@ export default function MatchDetailScreen({ route }) {
   const [match, setMatch] = useState(null);
   const [liveState, setLiveState] = useState(null);
   const [scorecard, setScorecard] = useState(null);
+  const [stream, setStream] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -78,6 +80,11 @@ export default function MatchDetailScreen({ route }) {
         setLiveState(await getLiveState(matchId));
       } else if (matchData.status === "COMPLETED") {
         setScorecard(await getScorecard(matchId));
+      }
+      try {
+        setStream(await getStreamByMatch(matchId));
+      } catch {
+        setStream(null);
       }
     } catch (err) {
       setError(extractErrorMessage(err));
@@ -117,6 +124,14 @@ export default function MatchDetailScreen({ route }) {
         {match.match_type} · {match.overs_limit} overs · {match.status}
       </Text>
       {match.result_summary && <Text style={styles.resultBanner}>{match.result_summary}</Text>}
+      {stream && (
+        <Text style={styles.streamBanner}>
+          📡 Stream: {stream.status}
+          {stream.status === "LIVE" && stream.viewer_count != null
+            ? ` · ${stream.viewer_count} watching`
+            : ""}
+        </Text>
+      )}
       {match.status === "SCHEDULED" && (
         <Text style={styles.hint}>
           Toss, starting the match, and scoring are done from the web app for now.
@@ -152,6 +167,14 @@ const styles = StyleSheet.create({
   resultBanner: {
     backgroundColor: "#eaf6f0",
     color: colors.primaryDark,
+    padding: 10,
+    borderRadius: 8,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  streamBanner: {
+    backgroundColor: "#fdeaea",
+    color: "#A60E14",
     padding: 10,
     borderRadius: 8,
     fontWeight: "600",

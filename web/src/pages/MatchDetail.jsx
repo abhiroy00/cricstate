@@ -8,7 +8,28 @@ import { useAuth } from "../hooks/useAuth";
 import { extractErrorMessage } from "../services/api";
 import { getMatch, recordToss, startMatch } from "../services/matchService";
 import { endMatch, getLiveState, getScorecard, startNextInnings } from "../services/scoringService";
+import { getStreamByMatch } from "../services/streamService";
 import { getRoster } from "../services/teamService";
+
+function StreamBanner({ stream }) {
+  if (!stream) return null;
+  return (
+    <p className="detail-subtitle">
+      📡 Stream: {stream.status}
+      {stream.status === "LIVE" && stream.viewer_count != null
+        ? ` · ${stream.viewer_count} watching`
+        : ""}
+      {stream.playback_url ? (
+        <>
+          {" · "}
+          <a href={stream.playback_url} target="_blank" rel="noreferrer">
+            Watch live
+          </a>
+        </>
+      ) : null}
+    </p>
+  );
+}
 
 function TossForm({ match, onDone }) {
   const [winnerId, setWinnerId] = useState(match.team_a.id);
@@ -257,6 +278,7 @@ export default function MatchDetail() {
   const [match, setMatch] = useState(null);
   const [liveState, setLiveState] = useState(null);
   const [scorecard, setScorecard] = useState(null);
+  const [stream, setStream] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -270,6 +292,11 @@ export default function MatchDetail() {
         setLiveState(await getLiveState(matchId));
       } else if (matchData.status === "COMPLETED") {
         setScorecard(await getScorecard(matchId));
+      }
+      try {
+        setStream(await getStreamByMatch(matchId));
+      } catch {
+        setStream(null);
       }
     } catch (err) {
       setError(extractErrorMessage(err));
@@ -327,6 +354,7 @@ export default function MatchDetail() {
         {match.venue ? ` · ${match.venue}` : ""} · {match.status}
       </p>
       {match.result_summary && <p className="match-result-banner">{match.result_summary}</p>}
+      <StreamBanner stream={stream} />
 
       {error && <p className="form-error-banner">{error}</p>}
 

@@ -70,3 +70,32 @@ class OrderOut(BaseModel):
     total: int
     items: List[OrderItemOut]
     created_at: datetime
+
+
+class PaymentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    order_id: uuid.UUID
+    user_id: uuid.UUID
+    provider: str
+    provider_ref: str
+    amount: int
+    currency: str
+    status: str
+    created_at: datetime
+
+
+class OrderDetailOut(OrderOut):
+    payments: List[PaymentOut] = []
+
+
+class PayInitOut(BaseModel):
+    order: OrderOut
+    payment: PaymentOut
+
+
+class WebhookPaymentIn(BaseModel):
+    provider_ref: str = Field(min_length=1, max_length=100)
+    status: str = Field(min_length=1, max_length=20)  # SUCCESS | FAILED
+    amount: Optional[int] = Field(default=None, ge=0)
