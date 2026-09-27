@@ -18,10 +18,11 @@ const RED = "#E01A22";
 const TEAL = "#00A651";
 const NAVY = "#171A4B";
 const GOLD = "#FFC42E";
-const SUPPORT_PHONE = "+91 99999 99999";
-const SUPPORT_TEL = "tel:+919999999999";
-const SUPPORT_MAIL = "mailto:support@cricstate.app?subject=CricState%20Help";
-const SUPPORT_WA = "https://wa.me/919999999999?text=Hi%2C%20I%20need%20help%20with%20CricState";
+const SUPPORT_PHONE = "+91 6200004001";
+const SUPPORT_TEL = "tel:+916200004001";
+const SUPPORT_EMAIL = "cricketstate2026@gmail.com";
+const SUPPORT_MAIL = "mailto:cricketstate2026@gmail.com?subject=CricState%20Help";
+const SUPPORT_WA = "https://wa.me/916200004001?text=Hi%2C%20I%20need%20help%20with%20CricState";
 const APP_CODE = "CRIC2026";
 
 // Har info page apne related section/link ke saath khule
@@ -230,7 +231,7 @@ export default function InfoScreen({ navigation, route }) {
             />
             <LinkBtn
               icon="✉️"
-              label="Email support@cricstate.app"
+              label={`Email ${SUPPORT_EMAIL}`}
               sub="Order + app queries"
               onPress={() => openLink(SUPPORT_MAIL, "Email")}
             />
