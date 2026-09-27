@@ -1,9 +1,10 @@
 import uuid
 from typing import List, Optional, Tuple
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.lineup import MatchLineup
 from app.models.match import Match
 
 
@@ -81,3 +82,35 @@ class MatchRepository:
             )
         )
         return list(result.scalars().all())
+
+    async def get_lineups(self, match_id: uuid.UUID) -> List[MatchLineup]:
+        result = await self.db.execute(
+            select(MatchLineup).where(MatchLineup.match_id == match_id)
+        )
+        return list(result.scalars().all())
+
+    async def replace_lineups(
+        self,
+        match_id: uuid.UUID,
+        team_id: uuid.UUID,
+        player_ids: List[uuid.UUID],
+        is_playing_xi: bool,
+    ) -> List[MatchLineup]:
+        await self.db.execute(
+            delete(MatchLineup).where(
+                MatchLineup.match_id == match_id, MatchLineup.team_id == team_id
+            )
+        )
+        rows = [
+            MatchLineup(
+                match_id=match_id,
+                team_id=team_id,
+                player_id=player_id,
+                is_playing_xi=is_playing_xi,
+            )
+            for player_id in player_ids
+        ]
+        for row in rows:
+            self.db.add(row)
+        await self.db.flush()
+        return rows

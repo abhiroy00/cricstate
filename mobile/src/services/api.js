@@ -1,14 +1,25 @@
 import axios from "axios";
 
 import { API_BASE_URL } from "../utils/config";
-import { clearTokens, getAccessToken, getRefreshToken, setTokens } from "../utils/storage";
+import {
+  clearTokens,
+  getAccessToken,
+  getCachedAccessToken,
+  getRefreshToken,
+  setTokens,
+} from "../utils/storage";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use(async (config) => {
-  const token = await getAccessToken();
+  // Hot path: use the in-memory token. Only touch AsyncStorage the first time
+  // (or after an explicit clear), instead of on every request.
+  let token = getCachedAccessToken();
+  if (token === undefined) {
+    token = await getAccessToken();
+  }
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

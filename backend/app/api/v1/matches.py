@@ -8,7 +8,14 @@ from app.core.database import get_db
 from app.models.match import MatchStatus
 from app.models.user import User
 from app.schemas.common import success_response
-from app.schemas.match import MatchCreate, MatchOut, MatchUpdate, StartMatchRequest, TossRequest
+from app.schemas.match import (
+    LineupSetRequest,
+    MatchCreate,
+    MatchOut,
+    MatchUpdate,
+    StartMatchRequest,
+    TossRequest,
+)
 from app.schemas.scoring import InningsOut
 from app.services.match_service import MatchService
 from app.services.scoring_service import ScoringService
@@ -80,6 +87,28 @@ async def update_match(
     service = MatchService(db)
     match = await service.update_match(current_user, match_id, payload)
     return success_response(MatchOut.model_validate(match).model_dump(), message="Match updated")
+
+
+@router.get("/{match_id}/lineups")
+async def get_lineups(match_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+    service = MatchService(db)
+    entries = await service.get_lineups(match_id)
+    return success_response([entry.model_dump(mode="json") for entry in entries])
+
+
+@router.put("/{match_id}/lineups")
+async def set_lineups(
+    match_id: uuid.UUID,
+    payload: LineupSetRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = MatchService(db)
+    await service.set_lineups(current_user, match_id, payload)
+    entries = [e for e in await service.get_lineups(match_id) if e.team_id == payload.team_id]
+    return success_response(
+        [entry.model_dump(mode="json") for entry in entries], message="Squad saved"
+    )
 
 
 @router.post("/{match_id}/toss")

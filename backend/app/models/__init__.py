@@ -13,6 +13,7 @@ from app.models.engagement import (
 )
 from app.models.follow import Follow
 from app.models.innings import Innings
+from app.models.lineup import MatchLineup
 from app.models.match import Match
 from app.models.membership import Membership, MembershipPlan
 from app.models.player import Player
@@ -45,6 +46,7 @@ __all__ = [
     "Tournament",
     "TournamentTeam",
     "Match",
+    "MatchLineup",
     "Innings",
     "Delivery",
     "PlayerMatchStats",

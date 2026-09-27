@@ -124,6 +124,26 @@ class TournamentService:
         await self.db.refresh(registration)
         return registration
 
+    async def unregister_team(
+        self, current_user: User, tournament_id: uuid.UUID, team_id: uuid.UUID
+    ) -> None:
+        tournament = await self.get_tournament_or_404(tournament_id)
+        registration = await self.tournaments.get_registration(tournament_id, team_id)
+        if not registration:
+            raise NotFoundError("Registration not found")
+
+        team = await self.teams.get_by_id(team_id)
+        # Same rule as registering: the team's owner or the tournament
+        # organizer/admin may remove the registration.
+        if not (
+            (team and is_owner_or_admin(current_user, team.created_by))
+            or is_owner_or_admin(current_user, tournament.organizer_id)
+        ):
+            raise ForbiddenError("You do not have permission to unregister this team")
+
+        await self.tournaments.remove_registration(registration)
+        await self.db.commit()
+
     async def update_registration(
         self,
         current_user: User,

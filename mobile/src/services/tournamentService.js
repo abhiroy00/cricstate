@@ -27,6 +27,11 @@ export async function registerTeam(tournamentId, teamId) {
   return response.data.data;
 }
 
+export async function unregisterTeam(tournamentId, teamId) {
+  const response = await api.delete(`/tournaments/${tournamentId}/teams/${teamId}`);
+  return response.data.data;
+}
+
 export async function getPointsTable(tournamentId) {
   const response = await api.get(`/tournaments/${tournamentId}/points-table`);
   return response.data.data;

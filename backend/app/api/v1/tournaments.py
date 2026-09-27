@@ -141,6 +141,18 @@ async def update_registration(
     )
 
 
+@router.delete("/{tournament_id}/teams/{team_id}")
+async def unregister_team(
+    tournament_id: uuid.UUID,
+    team_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    service = TournamentService(db)
+    await service.unregister_team(current_user, tournament_id, team_id)
+    return success_response(None, message="Team unregistered")
+
+
 @router.get("/{tournament_id}/points-table")
 async def get_points_table(tournament_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     service = TournamentService(db)

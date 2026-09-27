@@ -868,11 +868,11 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F3F5F8",
   },
   body: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F3F5F8",
   },
 
   /* Header — Dream11-style dynamic red gradient (DreamHeader) + gold strip */
@@ -1043,21 +1043,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 14,
-    marginTop: 8,
+    marginTop: 16,
     marginBottom: 10,
-    backgroundColor: GREY_BG,
-    paddingVertical: 12,
-    marginHorizontal: 0,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 17,
+    fontWeight: "800",
     color: "#111",
   },
   sectionLink: {
-    fontSize: 16,
-    color: TEAL,
-    fontWeight: "500",
+    fontSize: 14,
+    color: RED,
+    fontWeight: "700",
   },
 
   /* Match cards */
@@ -1068,15 +1065,15 @@ const styles = StyleSheet.create({
   matchCard: {
     width: 330,
     backgroundColor: "#fff",
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#ECECEC",
+    borderColor: "#EDF0F4",
     padding: 14,
     marginRight: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#0B1B33",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
   matchCardFull: {
@@ -1086,7 +1083,7 @@ const styles = StyleSheet.create({
   },
   allWrap: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F3F5F8",
   },
   backRow: {
     flexDirection: "row",
@@ -1112,7 +1109,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderColor: "#111",
+    borderColor: "#E2E6EB",
     borderRadius: 18,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -1120,12 +1117,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   chipActive: {
-    backgroundColor: "#111",
+    backgroundColor: RED,
+    borderColor: RED,
   },
   chipText: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#111",
+    fontWeight: "600",
+    color: "#333",
   },
   chipTextActive: {
     color: "#fff",
@@ -1149,8 +1147,8 @@ const styles = StyleSheet.create({
     marginTop: -14,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   matchOwner: {
     fontSize: 15,
@@ -1253,9 +1251,18 @@ const styles = StyleSheet.create({
   /* Weekly highlights */
   hlBanner: {
     flexDirection: "row",
-    marginTop: 14,
+    marginTop: 16,
+    marginHorizontal: 12,
     backgroundColor: "#fff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#EDF0F4",
     overflow: "hidden",
+    shadowColor: "#0B1B33",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   hlLeft: {
     flex: 1,
@@ -1347,11 +1354,16 @@ const styles = StyleSheet.create({
   playerCard: {
     width: 172,
     marginRight: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#ECECEC",
+    borderColor: "#EDF0F4",
+    shadowColor: "#0B1B33",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   playerPhoto: {
     height: 190,
@@ -1557,7 +1569,7 @@ const styles = StyleSheet.create({
   /* Club feed */
   clubWrap: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#F3F5F8",
   },
   composerRow: {
     flexDirection: "row",
@@ -1631,15 +1643,15 @@ const styles = StyleSheet.create({
   },
   clubCard: {
     backgroundColor: "#fff",
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#ECECEC",
+    borderColor: "#EDF0F4",
     padding: 14,
     marginBottom: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.07,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "#0B1B33",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 3,
   },
   clubHead: {

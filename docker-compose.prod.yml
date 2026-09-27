@@ -31,6 +31,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cricstate}:${POSTGRES_PASSWORD:-cricstate}@postgres:5432/${POSTGRES_DB:-cricstate}
       REDIS_URL: redis://redis:6379/0
+    volumes:
+      - uploads_data:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,3 +51,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:

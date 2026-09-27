@@ -155,6 +155,58 @@ async def test_points_table_empty_before_matches(client: AsyncClient):
     assert response.json()["data"] == []
 
 
+async def test_unregister_team(client: AsyncClient):
+    organizer = await _register(client, "org9", "org9@example.com")
+    tournament = (
+        await client.post(
+            "/api/v1/tournaments",
+            json={"name": "Removal Cup", "format": "LEAGUE"},
+            headers=_auth_header(organizer),
+        )
+    ).json()["data"]
+    team = await _create_team(client, organizer, "Removable")
+    await client.post(
+        f"/api/v1/tournaments/{tournament['id']}/teams",
+        json={"team_id": team["id"]},
+        headers=_auth_header(organizer),
+    )
+
+    response = await client.delete(
+        f"/api/v1/tournaments/{tournament['id']}/teams/{team['id']}",
+        headers=_auth_header(organizer),
+    )
+    assert response.status_code == 200
+
+    listing = await client.get(f"/api/v1/tournaments/{tournament['id']}/teams")
+    assert listing.json()["data"] == []
+
+
+async def test_stranger_cannot_unregister_team(client: AsyncClient):
+    organizer = await _register(client, "org10", "org10@example.com")
+    team_owner = await _register(client, "teamowner5", "teamowner5@example.com")
+    stranger = await _register(client, "stranger2", "stranger2@example.com")
+
+    tournament = (
+        await client.post(
+            "/api/v1/tournaments",
+            json={"name": "Guarded Cup", "format": "LEAGUE"},
+            headers=_auth_header(organizer),
+        )
+    ).json()["data"]
+    team = await _create_team(client, team_owner, "Guarded")
+    await client.post(
+        f"/api/v1/tournaments/{tournament['id']}/teams",
+        json={"team_id": team["id"]},
+        headers=_auth_header(team_owner),
+    )
+
+    response = await client.delete(
+        f"/api/v1/tournaments/{tournament['id']}/teams/{team['id']}",
+        headers=_auth_header(stranger),
+    )
+    assert response.status_code == 403
+
+
 async def test_list_tournaments_organizer_filter(client: AsyncClient):
     organizer = await _register(client, "org7", "org7@example.com")
     other = await _register(client, "org8", "org8@example.com")

@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.match import MatchType, TossDecision
+from app.models.match import BallType, MatchType, TossDecision
+from app.schemas.player import PlayerOut
 from app.schemas.team import TeamOut
 
 
@@ -14,15 +15,30 @@ class MatchCreate(BaseModel):
     match_type: MatchType
     overs_limit: int
     venue: Optional[str] = None
+    city: Optional[str] = None
     scheduled_at: Optional[datetime] = None
     tournament_id: Optional[uuid.UUID] = None
+    # Start A Match setup fields
+    ball_type: Optional[BallType] = None
+    overs_per_bowler: Optional[int] = None
+    powerplay_overs: Optional[int] = None
+    pitch_type: Optional[str] = None
+    wagon_wheel: bool = False
+    officials: Optional[str] = None
 
 
 class MatchUpdate(BaseModel):
     venue: Optional[str] = None
+    city: Optional[str] = None
     scheduled_at: Optional[datetime] = None
     overs_limit: Optional[int] = None
     scorer_id: Optional[uuid.UUID] = None
+    ball_type: Optional[BallType] = None
+    overs_per_bowler: Optional[int] = None
+    powerplay_overs: Optional[int] = None
+    pitch_type: Optional[str] = None
+    wagon_wheel: Optional[bool] = None
+    officials: Optional[str] = None
 
 
 class TossRequest(BaseModel):
@@ -36,6 +52,18 @@ class StartMatchRequest(BaseModel):
     bowler_id: uuid.UUID
 
 
+class LineupSetRequest(BaseModel):
+    team_id: uuid.UUID
+    players: List[uuid.UUID] = Field(default_factory=list)
+    is_playing_xi: bool = True
+
+
+class LineupEntryOut(BaseModel):
+    team_id: uuid.UUID
+    is_playing_xi: bool
+    player: PlayerOut
+
+
 class MatchOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -45,6 +73,13 @@ class MatchOut(BaseModel):
     team_b: TeamOut
     match_type: str
     overs_limit: int
+    ball_type: Optional[str] = None
+    overs_per_bowler: Optional[int] = None
+    powerplay_overs: Optional[int] = None
+    pitch_type: Optional[str] = None
+    wagon_wheel: bool = False
+    officials: Optional[str] = None
+    city: Optional[str] = None
     venue: Optional[str] = None
     scheduled_at: Optional[datetime] = None
     status: str

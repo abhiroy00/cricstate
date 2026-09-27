@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.v1.router import api_router
 from app.core.config import settings
@@ -31,6 +34,11 @@ app.add_middleware(SecurityHeadersMiddleware)
 register_exception_handlers(app)
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+# User-uploaded media (team/tournament logos, avatars) served read-only.
+_upload_dir = Path(settings.UPLOAD_DIR)
+_upload_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(_upload_dir)), name="uploads")
 
 
 @app.get("/health")

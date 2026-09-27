@@ -3,20 +3,32 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, List, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDPkMixin
 
 if TYPE_CHECKING:
     from app.models.innings import Innings
+    from app.models.lineup import MatchLineup
     from app.models.team import Team
 
 
 class MatchType(str, Enum):
     T20 = "T20"
     ODI = "ODI"
+    LIMITED_OVERS = "LIMITED_OVERS"
+    BOX_TURF = "BOX_TURF"
+    PAIR_CRICKET = "PAIR_CRICKET"
+    TEST_MATCH = "TEST_MATCH"
+    THE_HUNDRED = "THE_HUNDRED"
     CUSTOM = "CUSTOM"
+
+
+class BallType(str, Enum):
+    LEATHER = "LEATHER"
+    TENNIS = "TENNIS"
+    OTHER = "OTHER"
 
 
 class MatchStatus(str, Enum):
@@ -45,6 +57,17 @@ class Match(UUIDPkMixin, TimestampMixin, Base):
     )
     match_type: Mapped[str] = mapped_column(String(20), nullable=False)
     overs_limit: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Setup captured by the Start A Match flow. Optional so older clients and
+    # existing rows keep working; ball_type drives Tennis vs Leather cricket.
+    ball_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    overs_per_bowler: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    powerplay_overs: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    pitch_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    wagon_wheel: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
+    officials: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    city: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     venue: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     scheduled_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -75,3 +98,6 @@ class Match(UUIDPkMixin, TimestampMixin, Base):
     )
     team_a: Mapped["Team"] = relationship(foreign_keys=[team_a_id], lazy="selectin")
     team_b: Mapped["Team"] = relationship(foreign_keys=[team_b_id], lazy="selectin")
+    lineups: Mapped[List["MatchLineup"]] = relationship(
+        back_populates="match", cascade="all, delete-orphan", lazy="selectin"
+    )

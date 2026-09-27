@@ -492,3 +492,29 @@ async def test_fielding_stats_credited_on_match_end(client: AsyncClient):
     assert fielder_stats["catches"] == 1
     assert fielder_stats["stumpings"] == 0
     assert fielder_stats["run_outs"] == 0
+
+
+async def test_delivery_response_embeds_live_state(client: AsyncClient):
+    """One ball = one request: the POST response carries both the delivery
+    fields (backward compatible) and the updated live state."""
+    setup = await _setup_ready_match(client)
+    scorer, match = setup["scorer"], setup["match"]
+
+    resp = await _deliver(client, scorer, match["id"], runs_off_bat=4)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()["data"]
+
+    # Existing delivery fields stay at the top level.
+    assert body["runs_off_bat"] == 4
+    assert body["is_legal_ball"] is True
+
+    # ...plus the live state so the client skips the follow-up GET /live.
+    live = body["live"]
+    assert live["innings"]["total_runs"] == 4
+    assert live["innings"]["legal_balls_bowled"] == 1
+
+    undo_resp = await client.delete(
+        f"/api/v1/scoring/{match['id']}/deliveries/last", headers=_auth_header(scorer)
+    )
+    assert undo_resp.status_code == 200, undo_resp.text
+    assert undo_resp.json()["data"]["live"]["innings"]["total_runs"] == 0

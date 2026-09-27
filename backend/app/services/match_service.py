@@ -1,17 +1,27 @@
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.authz import is_owner_or_admin
 from app.core.exceptions import AppError, ForbiddenError, NotFoundError
 from app.models.innings import Innings
+from app.models.lineup import MatchLineup
 from app.models.match import Match, MatchStatus, TossDecision
 from app.models.user import User
 from app.repositories.innings_repository import InningsRepository
 from app.repositories.match_repository import MatchRepository
 from app.repositories.team_repository import TeamRepository
-from app.schemas.match import MatchCreate, MatchOut, MatchUpdate, StartMatchRequest, TossRequest
+from app.schemas.player import PlayerOut
+from app.schemas.match import (
+    LineupEntryOut,
+    LineupSetRequest,
+    MatchCreate,
+    MatchOut,
+    MatchUpdate,
+    StartMatchRequest,
+    TossRequest,
+)
 from app.utils.pagination import PageParams, paginated_response
 
 
@@ -37,7 +47,14 @@ class MatchService:
             match_type=payload.match_type.value,
             overs_limit=payload.overs_limit,
             venue=payload.venue,
+            city=payload.city,
             scheduled_at=payload.scheduled_at,
+            ball_type=payload.ball_type.value if payload.ball_type else None,
+            overs_per_bowler=payload.overs_per_bowler,
+            powerplay_overs=payload.powerplay_overs,
+            pitch_type=payload.pitch_type,
+            wagon_wheel=payload.wagon_wheel,
+            officials=payload.officials,
             created_by=current_user.id,
             scorer_id=current_user.id,
         )
@@ -142,6 +159,36 @@ class MatchService:
         await self.db.commit()
         await self.db.refresh(innings)
         return innings
+
+    async def set_lineups(
+        self, current_user: User, match_id: uuid.UUID, payload: LineupSetRequest
+    ) -> List[MatchLineup]:
+        match = await self.get_match_or_404(match_id)
+        self._require_scorer(current_user, match)
+
+        if match.status != MatchStatus.SCHEDULED.value:
+            raise AppError("Squads can only be set before the match starts")
+        if payload.team_id not in (match.team_a_id, match.team_b_id):
+            raise AppError("Team is not part of this match")
+
+        await self._validate_roster_membership(payload.team_id, payload.players)
+        rows = await self.matches.replace_lineups(
+            match_id, payload.team_id, payload.players, payload.is_playing_xi
+        )
+        await self.db.commit()
+        return rows
+
+    async def get_lineups(self, match_id: uuid.UUID) -> List[LineupEntryOut]:
+        await self.get_match_or_404(match_id)
+        rows = await self.matches.get_lineups(match_id)
+        return [
+            LineupEntryOut(
+                team_id=row.team_id,
+                is_playing_xi=row.is_playing_xi,
+                player=PlayerOut.model_validate(row.player),
+            )
+            for row in rows
+        ]
 
     async def _validate_roster_membership(self, team_id: uuid.UUID, player_ids: list[uuid.UUID]) -> None:
         team = await self.teams.get_by_id(team_id)

@@ -77,3 +77,6 @@ class TournamentRepository:
         self.db.add(registration)
         await self.db.flush()
         return registration
+
+    async def remove_registration(self, registration: TournamentTeam) -> None:
+        await self.db.delete(registration)

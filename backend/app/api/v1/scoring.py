@@ -16,8 +16,12 @@ from app.websocket.manager import broadcast
 router = APIRouter(prefix="/scoring", tags=["scoring"])
 
 
-async def _push_live(match_id: uuid.UUID, db: AsyncSession) -> None:
-    """Best-effort push - WS failures must never break the HTTP response."""
+async def _push_live(match_id: uuid.UUID, db: AsyncSession):
+    """Best-effort push - WS failures must never break the HTTP response.
+
+    Returns the computed live state so mutation responses can embed it and the
+    client can update in a single round trip instead of a follow-up GET /live.
+    """
     try:
         state = await ScoringService(db).get_live_state(match_id)
         await broadcast(
@@ -28,8 +32,17 @@ async def _push_live(match_id: uuid.UUID, db: AsyncSession) -> None:
                 "live": state.model_dump(mode="json"),
             },
         )
+        return state
     except Exception:
-        pass
+        return None
+
+
+def _with_live(data: dict, live) -> dict:
+    """Attach the live state to an existing response payload. The original
+    fields stay at the top level, so older clients keep working unchanged."""
+    if live is not None:
+        data["live"] = live.model_dump(mode="json")
+    return data
 
 
 @router.post("/{match_id}/deliveries")
@@ -41,9 +54,9 @@ async def record_delivery(
 ):
     service = ScoringService(db)
     delivery = await service.record_delivery(current_user, match_id, payload)
-    response = success_response(DeliveryOut.model_validate(delivery).model_dump(), message="Delivery recorded")
-    await _push_live(match_id, db)
-    return response
+    live = await _push_live(match_id, db)
+    data = _with_live(DeliveryOut.model_validate(delivery).model_dump(), live)
+    return success_response(data, message="Delivery recorded")
 
 
 @router.delete("/{match_id}/deliveries/last")
@@ -54,9 +67,8 @@ async def undo_last_delivery(
 ):
     service = ScoringService(db)
     await service.undo_last_delivery(current_user, match_id)
-    response = success_response(None, message="Last delivery undone")
-    await _push_live(match_id, db)
-    return response
+    live = await _push_live(match_id, db)
+    return success_response(_with_live({}, live), message="Last delivery undone")
 
 
 @router.post("/{match_id}/next-over")
@@ -68,9 +80,9 @@ async def select_next_bowler(
 ):
     service = ScoringService(db)
     innings = await service.select_next_bowler(current_user, match_id, payload)
-    response = success_response(InningsOut.model_validate(innings).model_dump(), message="Bowler selected")
-    await _push_live(match_id, db)
-    return response
+    live = await _push_live(match_id, db)
+    data = _with_live(InningsOut.model_validate(innings).model_dump(), live)
+    return success_response(data, message="Bowler selected")
 
 
 @router.post("/{match_id}/next-innings")
@@ -82,9 +94,9 @@ async def start_next_innings(
 ):
     service = ScoringService(db)
     innings = await service.start_next_innings(current_user, match_id, payload)
-    response = success_response(InningsOut.model_validate(innings).model_dump(), message="Next innings started")
-    await _push_live(match_id, db)
-    return response
+    live = await _push_live(match_id, db)
+    data = _with_live(InningsOut.model_validate(innings).model_dump(), live)
+    return success_response(data, message="Next innings started")
 
 
 @router.post("/{match_id}/end")

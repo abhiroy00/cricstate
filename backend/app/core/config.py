@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     # viewer heartbeats are recorded here.
     STREAM_INGEST_BASE_URL: str = ""
 
+    # Local media storage for user uploads (team/tournament logos, avatars).
+    # Files are written under UPLOAD_DIR and served read-only at /uploads.
+    # In production this path is backed by a persistent volume (see
+    # docker-compose.prod.yml). Swap for S3/CDN without touching callers.
+    UPLOAD_DIR: str = "uploads"
+    MAX_UPLOAD_MB: int = 10
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

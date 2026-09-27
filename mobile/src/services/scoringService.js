@@ -9,3 +9,32 @@ export async function getScorecard(matchId) {
   const response = await api.get(`/scoring/${matchId}/scorecard`);
   return response.data.data;
 }
+
+export async function recordDelivery(matchId, payload) {
+  const response = await api.post(`/scoring/${matchId}/deliveries`, payload);
+  return response.data.data;
+}
+
+export async function undoLastDelivery(matchId) {
+  const response = await api.delete(`/scoring/${matchId}/deliveries/last`);
+  return response.data.data;
+}
+
+export async function selectNextBowler(matchId, bowlerId) {
+  const response = await api.post(`/scoring/${matchId}/next-over`, { bowler_id: bowlerId });
+  return response.data.data;
+}
+
+export async function startNextInnings(matchId, { strikerId, nonStrikerId, bowlerId }) {
+  const response = await api.post(`/scoring/${matchId}/next-innings`, {
+    striker_id: strikerId,
+    non_striker_id: nonStrikerId,
+    bowler_id: bowlerId,
+  });
+  return response.data.data;
+}
+
+export async function endMatch(matchId) {
+  const response = await api.post(`/scoring/${matchId}/end`);
+  return response.data.data;
+}
