@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import Button from "../components/common/Button";
 import ErrorState from "../components/common/ErrorState";
 import Loader from "../components/common/Loader";
+import { useMatchWebSocket } from "../hooks/useMatchWebSocket";
 import { extractErrorMessage } from "../services/api";
 import { getMatch } from "../services/matchService";
 import {
@@ -67,18 +68,37 @@ export default function Scorer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId]);
 
+  // Realtime channel (read-only). Merges server pushes into the same live state
+  // the REST flow uses; it never submits deliveries. REST scoring below keeps
+  // working even if this socket never connects.
+  useMatchWebSocket(matchId, (live) => {
+    setLiveState(live);
+  });
+
+  // Lightweight refresh: only the live state changes after a delivery/undo/
+  // bowler change. Used only as a fallback when the mutation response does not
+  // embed the new live state. Never re-fetches the match or the rosters.
+  async function refreshLive() {
+    const state = await getLiveState(matchId);
+    setLiveState(state);
+  }
+
   async function submitDelivery(payload) {
     setBusy(true);
     setError("");
     try {
-      await recordDelivery(matchId, payload);
+      const result = await recordDelivery(matchId, payload);
       setWicketOpen(false);
       setExtraOpen(null);
       setOutPlayerId("");
       setFielderId("");
       setNextBatsmanId("");
       setRunsWithWicket(0);
-      await load();
+      if (result?.live) {
+        setLiveState(result.live);
+      } else {
+        await refreshLive();
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -114,8 +134,12 @@ export default function Scorer() {
     setBusy(true);
     setError("");
     try {
-      await undoLastDelivery(matchId);
-      await load();
+      const result = await undoLastDelivery(matchId);
+      if (result?.live) {
+        setLiveState(result.live);
+      } else {
+        await refreshLive();
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
@@ -128,9 +152,13 @@ export default function Scorer() {
     setBusy(true);
     setError("");
     try {
-      await selectNextBowler(matchId, nextBowlerId);
+      const result = await selectNextBowler(matchId, nextBowlerId);
       setNextBowlerId("");
-      await load();
+      if (result?.live) {
+        setLiveState(result.live);
+      } else {
+        await refreshLive();
+      }
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {

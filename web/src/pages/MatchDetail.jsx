@@ -5,6 +5,7 @@ import Button from "../components/common/Button";
 import ErrorState from "../components/common/ErrorState";
 import Loader from "../components/common/Loader";
 import { useAuth } from "../hooks/useAuth";
+import { useMatchWebSocket } from "../hooks/useMatchWebSocket";
 import { extractErrorMessage } from "../services/api";
 import { getMatch, recordToss, startMatch } from "../services/matchService";
 import { endMatch, getLiveState, getScorecard, startNextInnings } from "../services/scoringService";
@@ -309,6 +310,12 @@ export default function MatchDetail() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchId]);
+
+  // Spectators get live score pushes without refreshing. Read-only: this only
+  // replaces the live state, it never triggers a fetch or a scoring action.
+  useMatchWebSocket(matchId, (live) => {
+    setLiveState(live);
+  });
 
   const isScorer = user && match && (user.id === match.created_by || user.id === match.scorer_id);
 

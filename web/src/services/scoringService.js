@@ -6,7 +6,8 @@ export async function recordDelivery(matchId, payload) {
 }
 
 export async function undoLastDelivery(matchId) {
-  await api.delete(`/scoring/${matchId}/deliveries/last`);
+  const response = await api.delete(`/scoring/${matchId}/deliveries/last`);
+  return response.data.data;
 }
 
 export async function selectNextBowler(matchId, bowlerId) {
